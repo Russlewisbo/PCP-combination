@@ -1,0 +1,10 @@
+{
+  "permission": {
+    "bash": {
+      "ls *": "allow",
+      "echo *": "allow",
+      "gh auth status *": "allow",
+      "head *": "allow"
+    }
+  }
+}
