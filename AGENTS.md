@@ -1,0 +1,112 @@
+# PCP Combination — Project Memory & Session Log
+
+> **How to use this file:** Read the **Current status** and **Next steps** sections first
+> to re-orient. At the **end of every working session**, append a row to the
+> **Session log** and refresh **Current status** / **Next steps**. Anything provisional
+> should be flagged so it can be reconciled later.
+
+Bayesian meta-analysis of combination/adjunctive therapy for *Pneumocystis jirovecii*
+pneumonia (PCP/PJP) in **HIV-negative / immunocompromised adults** (PROSPERO-registered).
+Primary question: comparative effectiveness/safety of combination/adjunctive regimens
+vs monotherapy (TMP-SMX). Primary outcome: all-cause mortality (30-day and/or in-hospital),
+OR with 95% credible intervals. Plan: Bayesian random-effects meta-analysis (NMA if data permit).
+
+## Current status (as of 2026-08-06)
+- Verified primary analysis complete: **adjunctive echinocandin/caspofungin + TMP-SMX vs
+  TMP-SMX monotherapy**, all-cause mortality.
+- Headline: primary (k=3) **OR 0.78 (95% CrI 0.31–1.93)**; sensitivity (k=6)
+  **OR 0.76 (0.43–1.37)**. Suggestive of benefit but inconclusive (CrI includes 1).
+- Timing subgroups added (per Yang et al. 2026 Table 1): initial (k=3) **OR 0.74 (0.34–1.62)**;
+  mixed (k=3) **OR 0.78 (0.31–1.93)**. No salvage-vs-monotherapy study available on our side.
+- Benchmarked against the Yang et al. 2026 echinocandin meta-analysis (see below).
+
+## Figure style (ALWAYS APPLY)
+All figures must be **JAMA style with a blue-grey palette**. `source("analysis/jama_style.R")`,
+then add `theme_jama()` and use `jama_blue_grey` / `jama_tier` for colours.
+No panel gridlines; classic axes; sans font.
+
+## Environment / gotchas
+- **Stan is broken on this machine** (rstan TBB linker error; no cmdstanr). Fit Bayesian
+  models with **`bayesmeta`** (semi-analytic, no MCMC). `rjags` is available as a fallback.
+- Priors used throughout: `mu ~ N(0, 1.5)` on log-OR; `tau ~ half-normal(0.5)`.
+- Helper `fit_bm()` wraps `bayesmeta()` with these priors (defined in the analysis script).
+
+## Key files
+- `analysis/pcp_meta_analysis.R` — reproducible meta-analysis script (data, log-ORs, models, subgroups).
+- `analysis/pcp_primary_meta_dataset.csv` — verified analysis dataset (has `timing` column).
+- `analysis/jama_style.R` — figure theme + palette.
+- `PCP_combination_extraction_database_v0.2_machine-draft.xlsx` — extraction DB
+  (**MACHINE FIRST-PASS, unverified**; needs dual human verification).
+- Source PDFs: `~/main/PCP_combo_thesis/Review_PDFs/`; plain text in
+  `~/main/PCP_combo_thesis/scratch/pdf_text/` (used to verify counts against source).
+- `STATUS.md` — older running log (superseded by this file for analysis work).
+
+## Reading the Excel DB
+Sheets have a title row above the header → `read_excel(path, sheet, skip = 1)`.
+First data row (`Smith2019`) is an EXAMPLE row — drop it. Key sheets:
+`1_Study_characteristics`, `2_Arms_covariates`, `3_Outcomes`, `4_Beta_D_glucan`,
+`5_Corticosteroids`, `8_Study_index` (eligibility).
+
+## Locked analysis decisions
+- Primary contrast: adjunctive echinocandin/caspofungin + TMP-SMX vs TMP-SMX monotherapy.
+- Effect measure: odds ratio. Timepoint: 30-day preferred, else in-hospital.
+- Duplicate `Qi2025 == Yanmeng2026` (byte-identical, same PUMCH cohort) → keep Qi2025 only.
+
+## Study inclusion (after SOURCE verification)
+Verified included set — primary = **Qi2025, Xu2025, Lu2017**; sensitivity adds
+**Jin2019, Qi2023, Li2024a**. All extracted counts confirmed accurate against source text.
+- **Excluded Tian2020** — HIV-POSITIVE cohort (published in *HIV Medicine*); machine draft
+  misclassified it. (Yang et al. independently excluded it too.)
+- **Li2024a** — confounded (caspofungin bundled with corticosteroid + lower TMP dose); kept
+  in the SENSITIVITY tier per user decision, flagged confounded. Its reference arm is the
+  only steroid-free comparator in the set.
+- **Qi2025 extraction confirmed**: full-cohort Table 4 = 18/35 (caspo) vs 31/79 (mono).
+  Yang et al.'s 18/27 & 62/82 come from the *ventilated subgroup* (Table 5) + an incorrect
+  pooling of monotherapy+clindamycin deaths — i.e. Yang analysed a subgroup as the whole study.
+
+## Sub-analyses NOT estimable
+- Corticosteroid presence/absence: near-universal steroid use across studies; only Li2024a
+  has a steroid-free reference arm (single confounded data point).
+- β-D-glucan yes/no: only one small study (Lu2017) omitted BDG → no informative contrast.
+
+## Comparison with Yang et al. 2026 (SSRN preprint, echinocandin + TMP-SMX vs TMP-SMX)
+- We share **9 of their 16** studies; missing 7 (mostly Chinese-language papers / master's
+  theses: Li2015, Liu2015, Wang2021, Wu2023, Xiang2015, Yu2017, Wang-ZG-2019 SLE) because
+  their search included CNKI/Wanfang.
+- Yang overall OR 0.93 (0.71–1.21) is null; their **initial-strategy OR 0.50 (0.32–0.77)**.
+- **Timing explains the gap.** Restricting our set to initial-strategy studies (dropping the
+  mixed Qi2025) gives OR 0.59 (0.32–1.09), consistent with Yang's initial signal.
+- Caveats on Yang: frequentist FIXED-effect M-H (narrow CIs); visible extraction errors
+  (Fig 4 ORs 21.32 & 19.00; the Qi2025 subgroup mix-up above). Useful comparator, not ground truth.
+- Nuance: Yang plotted Xu2025 as *initial* (Fig 3A) but Table 1 calls it initial+salvage; we
+  classified it **mixed** (SOURCE-CONFIRMED: Xu2025 never restricts caspofungin to first-line
+  use, reports no time-to-caspofungin, and flags "selection bias in caspofungin use"). This
+  makes our strict initial subgroup (0.74) less protective than Yang's (0.50).
+
+## Retrieval status of the 7 missing studies (checked 2026-08-06)
+None are in our local corpus; none could be added to the analysis this session.
+- **Wang-ZG-2019 (SLE, Medicine Baltimore; PMID 31169741, PMC6571266, open access)** —
+  OBTAINED (Europe PMC). **INELIGIBLE**: single-arm case series (9 patients, all combination,
+  0 deaths); no monotherapy comparator. Yang's "0/9 vs 2/6" invents a comparator absent from
+  the source — another Yang extraction error. Do NOT add.
+- **Yu-2017 (Int J Clin Exp Med 2017;10(1):1234–1242)** — low retrievability; that journal
+  ceased publication (~2018), no reliable DOI/PMID. Try ijcem.com archive / ResearchGate.
+- **Chinese-language, CNKI/Wanfang only (need institutional access; 2 are theses):**
+  Li-T-2015 (thesis, Capital Medical Univ), Liu-2015 (Chin J Mod Drug Appl 9(17):90–91),
+  Wang-Z-2021 (thesis, Hebei Medical Univ; DOI 10.27111/d.cnki.ghyku.2021.000212),
+  Wu-2023 (J Internal Intensive Med 29(5):393–396), Xiang-2015 (Chin J Clin Rational Drug Use
+  8(22):69–70). Route: team's Chinese-reading members via cnki.net / wanfangdata.com.cn.
+
+## Next steps / open questions
+1. Obtain the 5 CNKI/Wanfang Chinese studies via institutional access (team's Chinese readers);
+   Wang-ZG-2019 is ineligible (single-arm) and Yu-2017 is low-accessibility.
+2. Resolve the Xu2025 timing classification (initial vs mixed) against its source.
+3. Consider a binomial-likelihood hierarchical model (needs a working Stan toolchain).
+4. Leave-one-out / prior-sensitivity checks given small k.
+5. Draft the results write-up (emphasise the Tian2020 HIV misclassification and the Qi2025
+   subgroup error we caught) with JAMA-styled figures.
+
+## Session log
+| Date | Who | What happened / decisions | Where we left off |
+|---|---|---|---|
+| 2026-08-06 | Russ + Assistant | Set up Bayesian meta-analysis from the v0.2 machine draft; verified all counts against source PDFs; excluded Tian2020 (HIV+), de-duplicated Qi2025/Yanmeng2026; re-included confounded Li2024a per user; established JAMA blue-grey figure style; benchmarked vs Yang et al. (timing explains the difference); confirmed our Qi2025 extraction is correct and Yang's is a ventilated-subgroup error; added `timing` variable + initial/mixed subgroups; built side-by-side forest plot. | Primary OR 0.78 (0.31–1.93); analysis reproducible in `analysis/pcp_meta_analysis.R`. Pick up at "Next steps" above. |
