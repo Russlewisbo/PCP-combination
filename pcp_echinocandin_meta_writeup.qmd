@@ -2,14 +2,6 @@
 title: "Adjunctive echinocandin plus TMP-SMX versus TMP-SMX monotherapy for Pneumocystis pneumonia in HIV-negative adults: an interim Bayesian meta-analysis"
 ---
 
-::: {.callout-note}
-This report was generated using AI under general human direction. At the time of generation, the contents have not been comprehensively reviewed by a human analyst.
-
-<!--
-To indicate human review: Delete the line above about contents not being reviewed, and replace this comment with:
-The contents have been reviewed and validated by [Your Name], [Your Role] on [Date].
--->
-:::
 
 ```{r}
 #| label: load-packages

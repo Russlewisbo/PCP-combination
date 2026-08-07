@@ -1,0 +1,92 @@
+---
+title: "Frequentist meta-analysis"
+---
+
+```{r}
+#| label: setup
+#| message: false
+#| warning: false
+source("analysis/meta_helpers.R")
+ma <- load_ma()
+```
+
+For comparability with the wider literature (including Yang et al. 2026, who used a
+fixed-effect Mantel-Haenszel model), we fit a frequentist synthesis alongside the
+[Bayesian analysis](bayesian.qmd). The random-effects model (REML) is the primary
+frequentist estimate; the Mantel-Haenszel fixed-effect model is shown for comparison.
+
+```{r}
+#| label: fit-frequentist
+re <- rma(yi, vi, data = ma, method = "REML")            # random-effects (REML)
+mh <- rma.mh(ai = e_comb, n1i = n_comb, ci = e_ref, n2i = n_ref,
+             data = ma, measure = "OR")                   # Mantel-Haenszel fixed-effect
+re
+```
+
+## Pooled estimates
+
+```{r}
+#| label: freq-summary
+tibble(
+  Model = c("Random-effects (REML)", "Mantel-Haenszel (fixed)"),
+  OR = c(exp(re$b[1]), exp(mh$b[1])),
+  `95% CI lower` = c(exp(re$ci.lb), exp(mh$ci.lb)),
+  `95% CI upper` = c(exp(re$ci.ub), exp(mh$ci.ub))
+) |>
+  mutate(across(where(is.numeric), ~round(.x, 2))) |>
+  knitr::kable()
+```
+
+The random-effects pooled odds ratio is
+`{r} sprintf("%.2f (95%% CI %.2f-%.2f)", exp(re$b[1]), exp(re$ci.lb), exp(re$ci.ub))`.
+Between-study heterogeneity is moderate
+(I² = `{r} sprintf("%.0f%%", re$I2)`, τ² = `{r} sprintf("%.2f", re$tau2)`;
+Cochran's Q = `{r} sprintf("%.1f", re$QE)`, p = `{r} sprintf("%.2f", re$QEp)`).
+The interval crosses OR = 1, so the effect is not statistically significant.
+
+## Forest plot
+
+```{r}
+#| label: forest-freq
+est <- ma |>
+  transmute(label = study, kind = "study",
+            OR = exp(yi), lo = exp(yi - 1.96 * sei), hi = exp(yi + 1.96 * sei))
+pool <- tibble(
+  label = c("Random-effects (REML)", "Mantel-Haenszel (fixed)"), kind = "pooled",
+  OR = c(exp(re$b[1]), exp(mh$b[1])),
+  lo = c(exp(re$ci.lb), exp(mh$ci.lb)),
+  hi = c(exp(re$ci.ub), exp(mh$ci.ub)))
+
+bind_rows(est, pool) |>
+  mutate(label = factor(label, levels = rev(c(ma$study,
+           "Random-effects (REML)", "Mantel-Haenszel (fixed)")))) |>
+  ggplot(aes(OR, label, color = kind)) +
+  geom_vline(xintercept = 1, linetype = "dashed", color = "grey50") +
+  geom_pointrange(aes(xmin = lo, xmax = hi, shape = kind == "pooled"), linewidth = 0.6) +
+  scale_x_log10(breaks = c(0.1, 0.25, 0.5, 1, 2, 4)) +
+  scale_color_manual(values = c(study = jama_blue_grey[["medium"]],
+                                pooled = jama_blue_grey[["accent"]]), guide = "none") +
+  scale_shape_manual(values = c(16, 18), guide = "none") +
+  labs(x = "Odds ratio (log scale) \u2014 <1 favours combination", y = NULL,
+       title = "Frequentist forest plot",
+       subtitle = "Per-study estimates with random-effects and fixed-effect pooled odds ratios") +
+  theme_jama()
+```
+
+## Funnel plot
+
+With only six studies, formal small-study-effect tests (e.g., Egger's test) are
+underpowered and not recommended; the funnel plot is shown for completeness only.
+
+```{r}
+#| label: funnel
+ggplot(ma, aes(x = OR, y = sei)) +
+  geom_vline(xintercept = exp(re$b[1]), linetype = "dashed", color = "grey50") +
+  geom_point(size = 2.4, color = jama_blue_grey[["steel"]]) +
+  scale_x_log10(breaks = c(0.25, 0.5, 1, 2, 4)) +
+  scale_y_reverse() +
+  labs(x = "Odds ratio (log scale)", y = "Standard error",
+       title = "Funnel plot",
+       subtitle = "Dashed line = random-effects pooled estimate") +
+  theme_jama()
+```

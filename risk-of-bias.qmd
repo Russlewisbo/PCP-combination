@@ -1,0 +1,87 @@
+---
+title: "Risk of bias"
+---
+
+```{r}
+#| label: setup
+#| message: false
+#| warning: false
+source("analysis/meta_helpers.R")
+```
+
+::: {.callout-warning}
+**Preliminary assessment.** This is a provisional, machine-assisted mapping to the
+ROBINS-I domains, grounded in what was verified during data extraction. It is **not** a
+completed formal risk-of-bias assessment. Two reviewers must independently complete
+ROBINS-I and reconcile before these judgments are used.
+:::
+
+All six included studies are **non-randomised** (observational cohorts or a case series),
+so risk of bias is framed with **ROBINS-I**. The dominant concern across the evidence
+base is **bias due to confounding**: treatment was assigned by clinicians, not
+randomised, so sicker (or, conversely, more salvageable) patients may have
+preferentially received the combination regimen.
+
+## Domain-level judgments
+
+```{r}
+#| label: rob-data
+rob <- tibble::tribble(
+  ~study,   ~D1,        ~D2,        ~D3,        ~D4,        ~D5,        ~D6,     ~D7,        ~Overall,
+  "Qi2025",  "Serious",  "Moderate", "Low",      "Serious",  "Moderate", "Low",   "Serious",  "Serious",
+  "Xu2025",  "Serious",  "Moderate", "Low",      "Serious",  "Moderate", "Low",   "Moderate", "Serious",
+  "Lu2017",  "Serious",  "Serious",  "Low",      "Moderate", "Moderate", "Low",   "Moderate", "Serious",
+  "Jin2019", "Serious",  "Moderate", "Low",      "Moderate", "Low",      "Low",   "Moderate", "Serious",
+  "Qi2023",  "Serious",  "Moderate", "Low",      "Moderate", "Low",      "Low",   "Moderate", "Serious",
+  "Li2024a", "Serious",  "Moderate", "Moderate", "Critical", "Low",      "Low",   "Moderate", "Critical"
+)
+
+domain_labels <- c(
+  D1 = "D1 Confounding", D2 = "D2 Selection of participants",
+  D3 = "D3 Classification of interventions", D4 = "D4 Deviations (co-interventions/timing)",
+  D5 = "D5 Missing data", D6 = "D6 Measurement of outcome",
+  D7 = "D7 Selection of reported result", Overall = "Overall")
+
+rob |> knitr::kable()
+```
+
+## Traffic-light plot
+
+```{r}
+#| label: rob-plot
+levs <- c("Low", "Moderate", "Serious", "Critical")
+rob_long <- rob |>
+  pivot_longer(-study, names_to = "domain", values_to = "judgment") |>
+  mutate(judgment = factor(judgment, levels = levs),
+         domain = factor(domain, levels = names(domain_labels), labels = domain_labels),
+         study = factor(study, levels = rev(c("Qi2025","Xu2025","Lu2017","Jin2019","Qi2023","Li2024a"))))
+
+pal <- c(Low = jama_blue_grey[["light"]], Moderate = jama_blue_grey[["medium"]],
+         Serious = jama_blue_grey[["steel"]], Critical = jama_blue_grey[["accent"]])
+
+ggplot(rob_long, aes(domain, study, fill = judgment)) +
+  geom_tile(color = "white", linewidth = 1) +
+  geom_text(aes(label = substr(judgment, 1, 1),
+                color = judgment %in% c("Serious", "Critical")), size = 3.4, fontface = "bold") +
+  scale_fill_manual(values = pal, name = "Concern") +
+  scale_color_manual(values = c(`TRUE` = "white", `FALSE` = "#243B53"), guide = "none") +
+  labs(x = NULL, y = NULL, title = "Preliminary ROBINS-I traffic-light plot",
+       subtitle = "Darker = higher concern; L/M/S/C = Low/Moderate/Serious/Critical") +
+  theme_jama() +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+```
+
+## Rationale
+
+- **D1 Confounding — Serious for all.** Non-randomised assignment; confounding by
+  indication is likely. Xu2025's monotherapy arm was systematically sicker; Qi2025's
+  comparison is an unadjusted subgroup from a risk-factor study.
+- **D4 Deviations / co-interventions — Critical for Li2024a.** Its combination arm bundles
+  caspofungin with a corticosteroid and a lower TMP dose, so an echinocandin effect cannot
+  be isolated. Mixed initial/salvage timing raises concern for Qi2025 and Xu2025.
+- **D2 Selection — Serious for Lu2017**, a tiny single-centre case series (n = 5 vs 6).
+- **D6 Outcome measurement — Low for all**: all-cause mortality is an objective endpoint.
+
+Overall, the body of evidence is at **serious** risk of bias (driven by confounding),
+with Li2024a at **critical** risk. This reinforces the cautious, inconclusive
+interpretation of the pooled estimate.

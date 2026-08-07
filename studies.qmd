@@ -1,0 +1,55 @@
+---
+title: "Included studies"
+---
+
+```{r}
+#| label: setup
+#| message: false
+#| warning: false
+source("analysis/meta_helpers.R")
+ma <- load_ma()
+```
+
+## Analytic dataset
+
+All six included studies are **observational** (retrospective cohorts, or a small case
+series for Lu2017) of HIV-negative / immunocompromised adults. Each contributes one
+two-arm comparison: adjunctive echinocandin/caspofungin + TMP-SMX versus TMP-SMX
+monotherapy, with all-cause mortality at the timepoint shown.
+
+```{r}
+#| label: studies-table
+ma |>
+  transmute(Study = study, Tier = tier, Timing = timing,
+            `Mortality timepoint` = timepoint,
+            `Combination (deaths/N)` = paste0(e_comb, "/", n_comb),
+            `Monotherapy (deaths/N)` = paste0(e_ref, "/", n_ref),
+            OR = round(OR, 2),
+            `95% CI` = sprintf("%.2f\u2013%.2f", exp(yi - 1.96 * sei), exp(yi + 1.96 * sei))) |>
+  knitr::kable()
+```
+
+The **primary** tier comprises studies reporting in-hospital or ~30-day mortality; the
+**sensitivity** tier adds studies reporting longer-timepoint mortality. Treatment
+**timing** (initial vs mixed) is classified following Yang et al. (2026); no
+salvage-vs-monotherapy study is available.
+
+## Verification notes
+
+Every count above was checked against the source full text. Key decisions:
+
+| Study | Note |
+|---|---|
+| Qi2025 | Full-cohort Table 4 (18/35 vs 31/79). The same PUMCH cohort as Yanmeng2026 (duplicate removed). Prior meta-analyses that report 18/27 used the *ventilated subgroup*. |
+| Xu2025 | Multicentre cohort; the monotherapy arm was sicker (more solid tumour, more aspergillosis), so the crude comparison is subject to confounding by indication. Most influential study (see [sensitivity](sensitivity.qmd)). |
+| Lu2017 | Very small case series (n = 5 vs 6), heart-transplant recipients; mortality timepoint not explicitly defined. |
+| Jin2019 | 3-month mortality; full-cohort arms (not the β-D-glucan subgroups). |
+| Qi2023 | 90-day mortality; the *initial* caspofungin arm used (salvage arm excluded from this contrast). |
+| Li2024a | **Confounded**: the combination arm bundles caspofungin with a corticosteroid and a lower TMP dose, so it cannot isolate an echinocandin effect. Retained in the sensitivity tier only, flagged. |
+
+## Studies not analysed
+
+- **Tian2020** — excluded: an HIV-*positive* cohort (published in *HIV Medicine*), outside the population.
+- **Wang2019 pilot, Zhang2018** — no TMP-SMX monotherapy comparator arm.
+- **Taniguchi (administrative dataset)** — mortality events were back-calculated; excluded from the primary synthesis.
+- **Seven studies in Yang et al. that we could not retrieve** — mostly Chinese-language papers / theses (CNKI/Wanfang); one (Wang-ZG-2019) was obtained and found ineligible (single-arm). See [conclusions](conclusions.qmd).

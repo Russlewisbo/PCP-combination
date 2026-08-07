@@ -30,7 +30,8 @@
       "*.css": "allow",
       "*.html": "allow",
       "*.yml": "allow",
-      "*/.gitignore": "allow"
+      "*/.gitignore": "allow",
+      "*.qmd": "allow"
     }
   }
 }
