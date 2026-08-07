@@ -11,6 +11,9 @@ Primary question: comparative effectiveness/safety of combination/adjunctive reg
 vs monotherapy (TMP-SMX). Primary outcome: all-cause mortality (30-day and/or in-hospital),
 OR with 95% credible intervals. Plan: Bayesian random-effects meta-analysis (NMA if data permit).
 
+**Live site:** https://Russlewisbo.github.io/PCP-combination/ (published from the `gh-pages`
+branch via `quarto publish gh-pages --no-prompt`).
+
 ## Current status (as of 2026-08-06)
 - Verified primary analysis complete: **adjunctive echinocandin/caspofungin + TMP-SMX vs
   TMP-SMX monotherapy**, all-cause mortality.
