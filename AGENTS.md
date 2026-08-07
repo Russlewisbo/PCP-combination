@@ -100,13 +100,18 @@ None are in our local corpus; none could be added to the analysis this session.
 ## Next steps / open questions
 1. Obtain the 5 CNKI/Wanfang Chinese studies via institutional access (team's Chinese readers);
    Wang-ZG-2019 is ineligible (single-arm) and Yu-2017 is low-accessibility.
-2. Resolve the Xu2025 timing classification (initial vs mixed) against its source.
+2. Complete dual human verification of the extraction DB; have a reviewer sign off the AI
+   disclaimer at the top of `pcp_echinocandin_meta_writeup.qmd`.
 3. Consider a binomial-likelihood hierarchical model (needs a working Stan toolchain).
-4. Leave-one-out / prior-sensitivity checks given small k.
-5. Draft the results write-up (emphasise the Tian2020 HIV misclassification and the Qi2025
-   subgroup error we caught) with JAMA-styled figures.
+4. (Optional) Render the write-up to Word/PDF for the thesis team.
+
+### Done (2026-08-06)
+- Xu2025 timing resolved → **mixed** (source-confirmed).
+- Leave-one-out + prior-sensitivity checks complete (see status below).
+- Reproducible JAMA-styled write-up drafted: `pcp_echinocandin_meta_writeup.qmd` (renders clean).
 
 ## Session log
 | Date | Who | What happened / decisions | Where we left off |
 |---|---|---|---|
 | 2026-08-06 | Russ + Assistant | Set up Bayesian meta-analysis from the v0.2 machine draft; verified all counts against source PDFs; excluded Tian2020 (HIV+), de-duplicated Qi2025/Yanmeng2026; re-included confounded Li2024a per user; established JAMA blue-grey figure style; benchmarked vs Yang et al. (timing explains the difference); confirmed our Qi2025 extraction is correct and Yang's is a ventilated-subgroup error; added `timing` variable + initial/mixed subgroups; built side-by-side forest plot. | Primary OR 0.78 (0.31–1.93); analysis reproducible in `analysis/pcp_meta_analysis.R`. Pick up at "Next steps" above. |
+| 2026-08-06 | Russ + Assistant | Attempted retrieval of the 7 missing studies (none obtainable; Wang-ZG-2019 obtained but ineligible single-arm — another Yang extraction error). Ran robustness on the 6-study sensitivity model: **leave-one-out** pooled OR 0.59 (drop Qi2025) → 0.94 (drop Xu2025), all CrIs cross 1, Xu2025 most influential; **prior sensitivity** OR stable 0.75–0.77 across 7 priors (only CrI width responds to the tau prior). Drafted reproducible JAMA-styled Quarto write-up `pcp_echinocandin_meta_writeup.qmd` (loads from CSV + jama_style.R; renders clean; missing Chinese studies flagged as a limitation). | Headline unchanged: sensitivity OR 0.76 (0.43–1.37), inconclusive & robust. Write-up awaits human review/sign-off. Pick up at "Next steps". |

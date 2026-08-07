@@ -1,0 +1,42 @@
+<!-- Hidden widget mount + visible EN/IT toggle -->
+<div id="google_translate_element" style="display:none"></div>
+
+<div class="lang-toggle" role="group" aria-label="Language selector">
+  <span class="lang-label">Translate:</span>
+  <button type="button" id="lang-en" onclick="pcpSetLang('en')" title="English">EN</button>
+  <button type="button" id="lang-it" onclick="pcpSetLang('it')" title="Italiano">IT</button>
+</div>
+
+<script type="text/javascript">
+  // The Google Translate widget reads the `googtrans` cookie on load and applies the
+  // chosen translation, so setting the cookie + reloading makes the language persist
+  // across pages of the site.
+  function pcpSetGoogTrans(pair) {
+    var host = location.hostname;
+    var expired = ' expires=Thu, 01 Jan 1970 00:00:00 UTC;';
+    var base = pair ? ('googtrans=' + pair + ';') : ('googtrans=;');
+    var tail = pair ? '' : expired;
+    document.cookie = base + ' path=/;' + tail;
+    if (host) {
+      document.cookie = base + ' path=/; domain=' + host + ';' + tail;
+      document.cookie = base + ' path=/; domain=.' + host + ';' + tail;
+    }
+  }
+
+  function pcpSetLang(lang) {
+    if (lang === 'en') {
+      pcpSetGoogTrans(null);      // clear -> original English
+    } else {
+      pcpSetGoogTrans('/en/' + lang);
+    }
+    location.reload();
+  }
+
+  // Highlight the currently active language based on the cookie.
+  (function () {
+    var m = document.cookie.match(/googtrans=\/en\/(\w+)/);
+    var cur = m ? m[1] : 'en';
+    var el = document.getElementById('lang-' + cur);
+    if (el) el.classList.add('active');
+  })();
+</script>

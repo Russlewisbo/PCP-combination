@@ -1,0 +1,33 @@
+project:
+  type: website
+  output-dir: _site
+  execute-dir: project
+  render:
+    - index.qmd
+    - pcp_echinocandin_meta_writeup.qmd
+
+website:
+  title: "PCP Combination Therapy"
+  description: >
+    Bayesian meta-analysis of adjunctive echinocandin + TMP-SMX vs TMP-SMX
+    monotherapy for Pneumocystis pneumonia in HIV-negative adults.
+  navbar:
+    left:
+      - href: index.qmd
+        text: Overview
+      - href: pcp_echinocandin_meta_writeup.qmd
+        text: Analysis & Results
+    tools:
+      - icon: github
+        href: https://github.com/Russlewisbo/PCP-combination
+  page-footer:
+    center: "Interim analysis — machine-assisted, pending human verification."
+
+format:
+  html:
+    theme: cosmo
+    toc: true
+    toc-depth: 3
+    css: styles.css
+    include-in-header: assets/translate-head.html
+    include-after-body: assets/translate-button.html

@@ -1,0 +1,48 @@
+---
+title: "Adjunctive echinocandin for HIV-negative Pneumocystis pneumonia"
+---
+
+## Overview
+
+This site presents an interim **Bayesian random-effects meta-analysis** of adjunctive
+echinocandin/caspofungin plus trimethoprim-sulfamethoxazole (TMP-SMX) versus TMP-SMX
+monotherapy for all-cause mortality in HIV-negative / immunocompromised adults with
+*Pneumocystis jirovecii* pneumonia (PCP/PJP). It corresponds to the PROSPERO-registered
+review question on combination and adjunctive treatment regimens.
+
+The full methods, results, figures, and reproducible code are on the
+[Analysis & Results](pcp_echinocandin_meta_writeup.qmd) page.
+
+## Headline finding
+
+The verified evidence base is small and observational. Pooling the six source-verified
+studies, adjunctive echinocandin shows a **possible but inconclusive** mortality benefit
+versus monotherapy — the credible interval includes no effect:
+
+| Analysis | Studies | Pooled OR (95% CrI) |
+|---|---|---|
+| Primary (in-hospital / ~30-day) | 3 | 0.78 (0.31–1.93) |
+| Sensitivity (+ longer timepoints) | 6 | 0.76 (0.43–1.37) |
+
+An OR below 1 favours combination therapy. The estimate is robust to prior choice but
+sensitive to a single influential study (Xu2025); see the
+[robustness checks](pcp_echinocandin_meta_writeup.qmd#robustness-leave-one-out).
+
+## What was verified
+
+- **Tian2020 excluded** — an HIV-positive cohort that had been misclassified in the
+  machine-draft extraction.
+- **Qi2025 / Yanmeng2026 de-duplicated** — the same PUMCH cohort; the full-cohort
+  comparison (not the ventilated subgroup) was used.
+- **Counts source-checked** against the original full texts for every included study.
+
+## Language / lingua
+
+Use the **EN / IT** buttons at the top-right of any page to switch between English and
+Italian. Translation is provided automatically by Google Translate and is a machine
+translation — treat the English text as the source of record.
+
+::: {.callout-note}
+This report was generated using AI under general human direction. At the time of
+generation, the contents have not been comprehensively reviewed by a human analyst.
+:::

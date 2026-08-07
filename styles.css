@@ -1,0 +1,45 @@
+/* Language toggle (JAMA blue-grey) */
+.lang-toggle {
+  position: fixed;
+  top: 8px;
+  right: 12px;
+  z-index: 2000;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.lang-toggle .lang-label {
+  font: 600 11px/1 sans-serif;
+  color: #6E8CA8;
+  margin-right: 2px;
+}
+
+.lang-toggle button {
+  font: 600 12px/1 sans-serif;
+  padding: 6px 10px;
+  border: 1px solid #6E8CA8;
+  background: #ffffff;
+  color: #243B53;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.lang-toggle button:hover,
+.lang-toggle button.active {
+  background: #243B53;
+  color: #ffffff;
+}
+
+/* Suppress the default Google Translate top banner and body offset */
+.goog-te-banner-frame,
+.skiptranslate iframe.goog-te-banner-frame {
+  display: none !important;
+}
+body {
+  top: 0 !important;
+}
+#goog-gt-tt,
+.goog-te-balloon-frame {
+  display: none !important;
+}

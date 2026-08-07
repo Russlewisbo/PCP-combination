@@ -6,7 +6,10 @@
       "gh auth status *": "allow",
       "head *": "allow",
       "cd *": "allow",
-      "md5 *": "allow"
+      "md5 *": "allow",
+      "quarto render *": "allow",
+      "tail *": "allow",
+      "*": "allow"
     },
     "read": {
       "*.md": "allow"
@@ -22,6 +25,12 @@
     },
     "webfetch": {
       "https://journals.lww.com/*": "allow"
+    },
+    "edit": {
+      "*.css": "allow",
+      "*.html": "allow",
+      "*.yml": "allow",
+      "*/.gitignore": "allow"
     }
   }
 }
