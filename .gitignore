@@ -5,3 +5,4 @@
 
 # Quarto website build output
 /_site/
+*.knit.md
