@@ -56,17 +56,18 @@ rob_long <- rob |>
          domain = factor(domain, levels = names(domain_labels), labels = domain_labels),
          study = factor(study, levels = rev(c("Qi2025","Xu2025","Lu2017","Jin2019","Qi2023","Li2024a"))))
 
-pal <- c(Low = jama_blue_grey[["light"]], Moderate = jama_blue_grey[["medium"]],
-         Serious = jama_blue_grey[["steel"]], Critical = jama_blue_grey[["accent"]])
+# Conventional risk-of-bias traffic-light colours (override the blue-grey palette here).
+pal <- c(Low = "#4CAF50", Moderate = "#FBC02D", Serious = "#E53935", Critical = "#B71C1C")
+txt <- c(Low = "white", Moderate = "#333333", Serious = "white", Critical = "white")
 
 ggplot(rob_long, aes(domain, study, fill = judgment)) +
   geom_tile(color = "white", linewidth = 1) +
-  geom_text(aes(label = substr(judgment, 1, 1),
-                color = judgment %in% c("Serious", "Critical")), size = 3.4, fontface = "bold") +
+  geom_text(aes(label = substr(judgment, 1, 1), color = judgment),
+            size = 3.4, fontface = "bold") +
   scale_fill_manual(values = pal, name = "Concern") +
-  scale_color_manual(values = c(`TRUE` = "white", `FALSE` = "#243B53"), guide = "none") +
+  scale_color_manual(values = txt, guide = "none") +
   labs(x = NULL, y = NULL, title = "Preliminary ROBINS-I traffic-light plot",
-       subtitle = "Darker = higher concern; L/M/S/C = Low/Moderate/Serious/Critical") +
+       subtitle = "Green = low, yellow = moderate, red = serious, dark red = critical (L/M/S/C)") +
   theme_jama() +
   theme(axis.text.x = element_text(angle = 30, hjust = 1))
 ```
