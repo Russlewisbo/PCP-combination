@@ -1,0 +1,331 @@
+[
+  {
+    "objectID": "pcp_echinocandin_meta_writeup.html",
+    "href": "pcp_echinocandin_meta_writeup.html",
+    "title": "Adjunctive echinocandin plus TMP-SMX versus TMP-SMX monotherapy for Pneumocystis pneumonia in HIV-negative adults: an interim Bayesian meta-analysis",
+    "section": "",
+    "text": "Show code\nlibrary(tidyverse)\n\n\nWarning: package 'ggplot2' was built under R version 4.5.2\n\n\nWarning: package 'tibble' was built under R version 4.5.2\n\n\nWarning: package 'tidyr' was built under R version 4.5.2\n\n\nWarning: package 'readr' was built under R version 4.5.2\n\n\nWarning: package 'purrr' was built under R version 4.5.2\n\n\nWarning: package 'dplyr' was built under R version 4.5.2\n\n\nWarning: package 'lubridate' was built under R version 4.5.2\n\n\n── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──\n✔ dplyr     1.2.1     ✔ readr     2.2.0\n✔ forcats   1.0.1     ✔ stringr   1.6.0\n✔ ggplot2   4.0.3     ✔ tibble    3.3.1\n✔ lubridate 1.9.5     ✔ tidyr     1.3.2\n✔ purrr     1.2.2     \n── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──\n✖ dplyr::filter() masks stats::filter()\n✖ dplyr::lag()    masks stats::lag()\nℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors\n\n\nShow code\nlibrary(metafor)\n\n\nWarning: package 'metafor' was built under R version 4.5.2\n\n\nLoading required package: Matrix\n\n\nWarning: package 'Matrix' was built under R version 4.5.2\n\n\n\nAttaching package: 'Matrix'\n\nThe following objects are masked from 'package:tidyr':\n\n    expand, pack, unpack\n\nLoading required package: metadat\n\n\nWarning: package 'metadat' was built under R version 4.5.2\n\n\nLoading required package: numDeriv\n\nLoading the 'metafor' package (version 5.0-1). For an\nintroduction to the package please type: help(metafor)\n\n\nShow code\nlibrary(bayesmeta)\n\n\nLoading required package: forestplot\n\n\nWarning: package 'forestplot' was built under R version 4.5.2\n\n\nLoading required package: grid\nLoading required package: checkmate\n\n\nWarning: package 'checkmate' was built under R version 4.5.2\n\n\nLoading required package: abind\nLoading required package: mvtnorm\n\n\nWarning: package 'mvtnorm' was built under R version 4.5.2\n\n\n\nAttaching package: 'bayesmeta'\n\nThe following object is masked from 'package:stats':\n\n    convolve\n\n\nShow code\nsource(\"analysis/jama_style.R\")\nShow code\n# Verified analysis dataset (source-checked counts). One row per study:\n# combination (echinocandin) arm events/N and reference (monotherapy) arm events/N.\nma &lt;- read_csv(\"analysis/pcp_primary_meta_dataset.csv\", show_col_types = FALSE) |&gt;\n  select(study, tier, timing, timepoint, e_comb, n_comb, e_ref, n_ref)\n\n# Recompute per-study log odds ratios from the raw counts (self-contained).\nma &lt;- escalc(measure = \"OR\",\n             ai = e_comb, n1i = n_comb,   # combination (echinocandin) arm\n             ci = e_ref,  n2i = n_ref,    # reference (monotherapy) arm\n             data = ma, slab = study) |&gt;\n  mutate(sei = sqrt(vi), OR = exp(yi))\nShow code\n# Bayesian random-effects (normal-normal) meta-analysis with weakly informative\n# priors: mu ~ N(0, 1.5) on the log-OR; tau ~ half-normal(0.5).\nfit_bm &lt;- function(d) {\n  bayesmeta(y = d$yi, sigma = d$sei, labels = d$study,\n            mu.prior  = c(mean = 0, sd = 1.5),\n            tau.prior = function(t) dhalfnormal(t, scale = 0.5))\n}\nor_ci &lt;- function(bm) c(exp(bm$summary[\"median\", \"mu\"]),\n                        exp(bm$summary[\"95% lower\", \"mu\"]),\n                        exp(bm$summary[\"95% upper\", \"mu\"]))\nfmt   &lt;- function(bm) { v &lt;- or_ci(bm); sprintf(\"%.2f (95%% CrI %.2f\\u2013%.2f)\", v[1], v[2], v[3]) }\nplt1  &lt;- function(bm) bm$pposterior(mu = 0)   # P(OR &lt; 1 | data)\n\nbm_primary &lt;- fit_bm(filter(ma, tier == \"primary\"))      # k = 3\nbm_sens    &lt;- fit_bm(ma)                                  # k = 6\nbm_initial &lt;- fit_bm(filter(ma, timing == \"initial\"))    # Jin2019, Qi2023, Li2024a\nbm_mixed   &lt;- fit_bm(filter(ma, timing == \"mixed\"))       # Qi2025, Xu2025, Lu2017"
+  },
+  {
+    "objectID": "pcp_echinocandin_meta_writeup.html#data-source-and-verification",
+    "href": "pcp_echinocandin_meta_writeup.html#data-source-and-verification",
+    "title": "Adjunctive echinocandin plus TMP-SMX versus TMP-SMX monotherapy for Pneumocystis pneumonia in HIV-negative adults: an interim Bayesian meta-analysis",
+    "section": "Data source and verification",
+    "text": "Data source and verification\nStudy-level data were extracted from a structured extraction database (machine first-pass) and then verified against the source full texts before analysis. Verification changed the analytic set in three material ways:\n\nTian2020 was excluded: it is an HIV-positive cohort (published in HIV Medicine), which violates the HIV-negative inclusion criterion. The machine draft had misclassified it.\nQi2025 and Yanmeng2026 are the same PUMCH cohort (byte-identical source); one copy was retained. The full-cohort comparison (Table 4: 18/35 caspofungin vs 31/79 monotherapy) was used, not the mechanically-ventilated subgroup.\nLi2024a was retained but flagged confounded: its combination arm bundles caspofungin with a corticosteroid and a lower TMP dose, so it cannot isolate an echinocandin effect. It sits in the sensitivity tier only.\n\nThe primary analysis comprises the studies reporting in-hospital or ~30-day mortality (Qi2025, Xu2025, Lu2017); the sensitivity analysis adds studies reporting longer-timepoint mortality (Jin2019, Qi2023, Li2024a)."
+  },
+  {
+    "objectID": "pcp_echinocandin_meta_writeup.html#statistical-model",
+    "href": "pcp_echinocandin_meta_writeup.html#statistical-model",
+    "title": "Adjunctive echinocandin plus TMP-SMX versus TMP-SMX monotherapy for Pneumocystis pneumonia in HIV-negative adults: an interim Bayesian meta-analysis",
+    "section": "Statistical model",
+    "text": "Statistical model\nWe fitted a Bayesian random-effects (normal-normal) meta-analysis on the per-study log odds ratios, with weakly informative priors: a normal N(0, 1.5) prior on the pooled log-OR and a half-normal(0.5) prior on the between-study standard deviation \\[\\tau\\]. Models were fitted with the bayesmeta package, which integrates the posterior semi-analytically (no MCMC). This choice was necessary because the Stan toolchain is unavailable on the analysis machine; the trade-off is that we use a two-stage normal approximation rather than an exact binomial-likelihood hierarchical model, which is less ideal for the sparse cells in the smallest studies."
+  },
+  {
+    "objectID": "pcp_echinocandin_meta_writeup.html#included-studies",
+    "href": "pcp_echinocandin_meta_writeup.html#included-studies",
+    "title": "Adjunctive echinocandin plus TMP-SMX versus TMP-SMX monotherapy for Pneumocystis pneumonia in HIV-negative adults: an interim Bayesian meta-analysis",
+    "section": "Included studies",
+    "text": "Included studies\n\n\nShow code\nma |&gt;\n  transmute(Study = study, Tier = tier, Timing = timing, Timepoint = timepoint,\n            `Combination (events/N)` = paste0(e_comb, \"/\", n_comb),\n            `Monotherapy (events/N)` = paste0(e_ref, \"/\", n_ref),\n            OR = round(OR, 2)) |&gt;\n  knitr::kable()\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nStudy\nTier\nTiming\nTimepoint\nCombination (events/N)\nMonotherapy (events/N)\nOR\n\n\n\n\nQi2025\nprimary\nmixed\nin-hospital\n18/35\n31/79\n1.64\n\n\nXu2025\nprimary\nmixed\n28-day\n33/89\n19/31\n0.37\n\n\nLu2017\nprimary\nmixed\nepisode/in-hosp\n1/5\n2/6\n0.50\n\n\nJin2019\nsensitivity\ninitial\n3-month\n8/35\n33/91\n0.52\n\n\nQi2023\nsensitivity\ninitial\n90-day\n17/43\n10/21\n0.72\n\n\nLi2024a\nsensitivity\ninitial\nepisode (unspec)\n5/20\n3/18\n1.67"
+  },
+  {
+    "objectID": "pcp_echinocandin_meta_writeup.html#primary-and-sensitivity-estimates",
+    "href": "pcp_echinocandin_meta_writeup.html#primary-and-sensitivity-estimates",
+    "title": "Adjunctive echinocandin plus TMP-SMX versus TMP-SMX monotherapy for Pneumocystis pneumonia in HIV-negative adults: an interim Bayesian meta-analysis",
+    "section": "Primary and sensitivity estimates",
+    "text": "Primary and sensitivity estimates\nThe primary analysis (k = 3) gives a pooled OR of 0.78 (95% CrI 0.31–1.93), and the sensitivity analysis (k = 6) gives 0.76 (95% CrI 0.43–1.37) (posterior probability that OR &lt; 1 = 0.84). Both estimates point toward a possible mortality reduction with adjunctive echinocandin, but both credible intervals include OR = 1, so the evidence is suggestive rather than conclusive.\n\n\nShow code\nstudy_fp &lt;- ma |&gt;\n  transmute(label = study, tier,\n            OR = exp(yi), lo = exp(yi - 1.96 * sei), hi = exp(yi + 1.96 * sei))\npooled_fp &lt;- tibble(\n  label = c(\"Pooled: primary (k=3)\", \"Pooled: sensitivity (k=6)\"),\n  tier  = \"pooled\",\n  OR = c(or_ci(bm_primary)[1], or_ci(bm_sens)[1]),\n  lo = c(or_ci(bm_primary)[2], or_ci(bm_sens)[2]),\n  hi = c(or_ci(bm_primary)[3], or_ci(bm_sens)[3]))\n\nbind_rows(study_fp, pooled_fp) |&gt;\n  mutate(label = factor(label, levels = rev(c(\n           \"Qi2025\", \"Xu2025\", \"Lu2017\", \"Jin2019\", \"Qi2023\", \"Li2024a\",\n           \"Pooled: primary (k=3)\", \"Pooled: sensitivity (k=6)\"))),\n         tier = factor(tier, levels = c(\"primary\", \"sensitivity\", \"pooled\"))) |&gt;\n  ggplot(aes(OR, label, color = tier)) +\n  geom_vline(xintercept = 1, linetype = \"dashed\", color = \"grey50\") +\n  geom_pointrange(aes(xmin = lo, xmax = hi, shape = tier == \"pooled\"), linewidth = 0.6) +\n  scale_x_log10(breaks = c(0.1, 0.25, 0.5, 1, 2, 4)) +\n  scale_color_manual(values = jama_tier) +\n  scale_shape_manual(values = c(16, 18), guide = \"none\") +\n  labs(x = \"Odds ratio (log scale) \\u2014 &lt;1 favours adjunctive echinocandin\", y = NULL,\n       title = \"Adjunctive echinocandin + TMP-SMX vs TMP-SMX monotherapy\",\n       subtitle = \"All-cause mortality; Bayesian random-effects meta-analysis\") +\n  theme_jama()"
+  },
+  {
+    "objectID": "pcp_echinocandin_meta_writeup.html#timing-subgroups",
+    "href": "pcp_echinocandin_meta_writeup.html#timing-subgroups",
+    "title": "Adjunctive echinocandin plus TMP-SMX versus TMP-SMX monotherapy for Pneumocystis pneumonia in HIV-negative adults: an interim Bayesian meta-analysis",
+    "section": "Timing subgroups",
+    "text": "Timing subgroups\nFollowing Yang et al. (2026), studies were classified by treatment timing (initial vs mixed; no pure salvage-vs-monotherapy study is available in our set). The initial-strategy subgroup (k = 3) gives 0.74 (95% CrI 0.34–1.62) and the mixed-strategy subgroup (k = 3) gives 0.78 (95% CrI 0.31–1.93). Both remain inconclusive. Our strict initial subgroup is less protective than Yang’s because we classified Xu2025 (a strong-benefit study) as mixed, consistent with its source (caspofungin timing not restricted to first-line; “selection bias in caspofungin use” acknowledged)."
+  },
+  {
+    "objectID": "pcp_echinocandin_meta_writeup.html#comparison-with-yang-et-al.-2026",
+    "href": "pcp_echinocandin_meta_writeup.html#comparison-with-yang-et-al.-2026",
+    "title": "Adjunctive echinocandin plus TMP-SMX versus TMP-SMX monotherapy for Pneumocystis pneumonia in HIV-negative adults: an interim Bayesian meta-analysis",
+    "section": "Comparison with Yang et al. (2026)",
+    "text": "Comparison with Yang et al. (2026)\nYang et al. asked the same question with a broader search (including Chinese databases). We share 9 of their 16 studies. Their overall estimate is null (OR 0.93) but their initial-strategy subgroup is clearly protective (OR 0.50); the figure below places our estimates alongside theirs. The two analyses are consistent once treatment timing is matched.\n\n\nShow code\ncomp &lt;- tibble(\n  source   = c(rep(\"Our analysis\", 3), rep(\"Yang et al. 2026\", 4)),\n  subgroup = c(\"Overall\", \"Initial\", \"Mixed\", \"Overall\", \"Initial\", \"Mixed\", \"Salvage\"),\n  k        = c(6, 3, 3, 13, 10, 3, 3),\n  OR = c(or_ci(bm_sens)[1], or_ci(bm_initial)[1], or_ci(bm_mixed)[1], 0.93, 0.50, 1.38, 1.60),\n  lo = c(or_ci(bm_sens)[2], or_ci(bm_initial)[2], or_ci(bm_mixed)[2], 0.71, 0.32, 0.99, 0.62),\n  hi = c(or_ci(bm_sens)[3], or_ci(bm_initial)[3], or_ci(bm_mixed)[3], 1.21, 0.77, 1.95, 4.11)) |&gt;\n  mutate(row = paste0(source, \" \\u2014 \", subgroup, \" (k=\", k, \")\"))\ncomp$row &lt;- factor(comp$row, levels = rev(comp$row))\n\nggplot(comp, aes(OR, row, color = source)) +\n  geom_vline(xintercept = 1, linetype = \"dashed\", color = \"grey50\") +\n  geom_pointrange(aes(xmin = lo, xmax = hi), shape = 18, linewidth = 0.7) +\n  scale_x_log10(breaks = c(0.25, 0.5, 1, 2, 4), limits = c(0.25, 4.5)) +\n  scale_color_manual(values = c(\"Our analysis\" = jama_blue_grey[[\"dark\"]],\n                                \"Yang et al. 2026\" = jama_blue_grey[[\"medium\"]])) +\n  labs(x = \"Odds ratio (log scale) \\u2014 &lt;1 favours combination\", y = NULL,\n       title = \"Our estimates vs Yang et al. (2026)\",\n       subtitle = \"All-cause mortality; Bayesian random-effects (ours) vs fixed-effect M-H (Yang)\") +\n  theme_jama()\n\n\n\n\n\n\n\n\n\nNote that Yang et al.’s extraction contains errors we identified during verification, so it is a useful comparator rather than a ground truth: their Qi2025 numbers come from the ventilated subgroup, and their “Wang 2019” entry treats a single-arm case series (9 patients, 0 deaths) as a two-arm comparison."
+  },
+  {
+    "objectID": "pcp_echinocandin_meta_writeup.html#robustness-leave-one-out",
+    "href": "pcp_echinocandin_meta_writeup.html#robustness-leave-one-out",
+    "title": "Adjunctive echinocandin plus TMP-SMX versus TMP-SMX monotherapy for Pneumocystis pneumonia in HIV-negative adults: an interim Bayesian meta-analysis",
+    "section": "Robustness: leave-one-out",
+    "text": "Robustness: leave-one-out\n\n\nShow code\nloo &lt;- map_dfr(ma$study, function(s) {\n  bm &lt;- fit_bm(filter(ma, study != s))\n  tibble(removed = paste0(\"\\u2212 \", s),\n         OR = exp(bm$summary[\"median\", \"mu\"]),\n         lo = exp(bm$summary[\"95% lower\", \"mu\"]),\n         hi = exp(bm$summary[\"95% upper\", \"mu\"]))\n})\nloo &lt;- bind_rows(\n  tibble(removed = \"Full model (k=6)\",\n         OR = or_ci(bm_sens)[1], lo = or_ci(bm_sens)[2], hi = or_ci(bm_sens)[3]),\n  loo)\nloo |&gt; mutate(across(where(is.numeric), ~round(.x, 2))) |&gt; knitr::kable()\n\n\n\n\n\nremoved\nOR\nlo\nhi\n\n\n\n\nFull model (k=6)\n0.76\n0.43\n1.37\n\n\n− Qi2025\n0.59\n0.32\n1.09\n\n\n− Xu2025\n0.94\n0.50\n1.76\n\n\n− Lu2017\n0.77\n0.42\n1.43\n\n\n− Jin2019\n0.84\n0.43\n1.66\n\n\n− Qi2023\n0.77\n0.39\n1.53\n\n\n− Li2024a\n0.70\n0.38\n1.31\n\n\n\n\n\nThe pooled OR ranges from about 0.59 (omitting Qi2025) to 0.94 (omitting Xu2025). Every leave-one-out estimate still crosses OR = 1, so no single study changes the qualitative conclusion, but Xu2025 is the single most influential study, accounting for most of the apparent benefit.\n\n\nShow code\nloo |&gt;\n  mutate(kind = ifelse(removed == \"Full model (k=6)\", \"full\", \"loo\"),\n         removed = factor(removed, levels = rev(removed))) |&gt;\n  ggplot(aes(OR, removed, color = kind)) +\n  geom_vline(xintercept = 1, linetype = \"dashed\", color = \"grey50\") +\n  geom_pointrange(aes(xmin = lo, xmax = hi), shape = 18, linewidth = 0.6) +\n  scale_x_log10(breaks = c(0.25, 0.5, 1, 2)) +\n  scale_color_manual(values = c(full = jama_blue_grey[[\"accent\"]],\n                                loo  = jama_blue_grey[[\"medium\"]]), guide = \"none\") +\n  labs(x = \"Pooled odds ratio (log scale) \\u2014 &lt;1 favours combination\", y = NULL,\n       title = \"Leave-one-out sensitivity (6-study model)\",\n       subtitle = \"Each row omits one study; top row = full model\") +\n  theme_jama()"
+  },
+  {
+    "objectID": "pcp_echinocandin_meta_writeup.html#robustness-prior-sensitivity",
+    "href": "pcp_echinocandin_meta_writeup.html#robustness-prior-sensitivity",
+    "title": "Adjunctive echinocandin plus TMP-SMX versus TMP-SMX monotherapy for Pneumocystis pneumonia in HIV-negative adults: an interim Bayesian meta-analysis",
+    "section": "Robustness: prior sensitivity",
+    "text": "Robustness: prior sensitivity\n\n\nShow code\nfit_prior &lt;- function(mu_sd, tau_scale, fam) {\n  tp &lt;- switch(fam,\n    HN = function(t) dhalfnormal(t, scale = tau_scale),\n    HC = function(t) dhalfcauchy(t, scale = tau_scale),\n    U  = function(t) dunif(t, 0, tau_scale))\n  bayesmeta(y = ma$yi, sigma = ma$sei, labels = ma$study,\n            mu.prior = c(mean = 0, sd = mu_sd), tau.prior = tp)\n}\ngrid &lt;- tribble(\n  ~prior,                            ~mu_sd, ~tau_scale, ~fam,\n  \"Base: mu~N(0,1.5), tau~HN(0.5)\",     1.5,  0.50, \"HN\",\n  \"Tighter tau ~ HN(0.25)\",             1.5,  0.25, \"HN\",\n  \"Wider tau ~ HN(1.0)\",                1.5,  1.00, \"HN\",\n  \"tau ~ half-Cauchy(0.5)\",             1.5,  0.50, \"HC\",\n  \"tau ~ Uniform(0,2)\",                 1.5,  2.00, \"U\",\n  \"Wider mu ~ N(0,10)\",                  10,  0.50, \"HN\",\n  \"Tighter mu ~ N(0,1)\",                1.0,  0.50, \"HN\")\n\npmap_dfr(list(grid$prior, grid$mu_sd, grid$tau_scale, grid$fam),\n  function(p, m, ts, f) {\n    bm &lt;- fit_prior(m, ts, f)\n    tibble(Prior = p,\n           OR = exp(bm$summary[\"median\", \"mu\"]),\n           lo = exp(bm$summary[\"95% lower\", \"mu\"]),\n           hi = exp(bm$summary[\"95% upper\", \"mu\"]),\n           tau = bm$summary[\"median\", \"tau\"])\n  }) |&gt;\n  mutate(across(where(is.numeric), ~round(.x, 2))) |&gt;\n  knitr::kable()\n\n\n\n\n\nPrior\nOR\nlo\nhi\ntau\n\n\n\n\nBase: mu~N(0,1.5), tau~HN(0.5)\n0.76\n0.43\n1.37\n0.37\n\n\nTighter tau ~ HN(0.25)\n0.76\n0.47\n1.23\n0.22\n\n\nWider tau ~ HN(1.0)\n0.76\n0.39\n1.53\n0.49\n\n\ntau ~ half-Cauchy(0.5)\n0.76\n0.41\n1.41\n0.38\n\n\ntau ~ Uniform(0,2)\n0.77\n0.36\n1.66\n0.57\n\n\nWider mu ~ N(0,10)\n0.75\n0.42\n1.37\n0.37\n\n\nTighter mu ~ N(0,1)\n0.77\n0.44\n1.36\n0.37\n\n\n\n\n\nThe pooled OR is essentially invariant to the prior specification (0.75–0.77 across all choices). Only the credible-interval width responds to the heterogeneity prior, as expected: a tighter \\[\\tau\\] prior narrows the interval and a uniform prior widens it. The pooled location is therefore robust; the residual uncertainty is driven by the small number of studies and genuine between-study heterogeneity rather than by prior choice."
+  },
+  {
+    "objectID": "risk-of-bias.html",
+    "href": "risk-of-bias.html",
+    "title": "Risk of bias",
+    "section": "",
+    "text": "Show code\nsource(\"analysis/meta_helpers.R\")\nAll six included studies are non-randomised (observational cohorts or a case series), so risk of bias is framed with ROBINS-I. The dominant concern across the evidence base is bias due to confounding: treatment was assigned by clinicians, not randomised, so sicker (or, conversely, more salvageable) patients may have preferentially received the combination regimen."
+  },
+  {
+    "objectID": "risk-of-bias.html#domain-level-judgments",
+    "href": "risk-of-bias.html#domain-level-judgments",
+    "title": "Risk of bias",
+    "section": "Domain-level judgments",
+    "text": "Domain-level judgments\n\n\nShow code\nrob &lt;- tibble::tribble(\n  ~study,   ~D1,        ~D2,        ~D3,        ~D4,        ~D5,        ~D6,     ~D7,        ~Overall,\n  \"Qi2025\",  \"Serious\",  \"Moderate\", \"Low\",      \"Serious\",  \"Moderate\", \"Low\",   \"Serious\",  \"Serious\",\n  \"Xu2025\",  \"Serious\",  \"Moderate\", \"Low\",      \"Serious\",  \"Moderate\", \"Low\",   \"Moderate\", \"Serious\",\n  \"Lu2017\",  \"Serious\",  \"Serious\",  \"Low\",      \"Moderate\", \"Moderate\", \"Low\",   \"Moderate\", \"Serious\",\n  \"Jin2019\", \"Serious\",  \"Moderate\", \"Low\",      \"Moderate\", \"Low\",      \"Low\",   \"Moderate\", \"Serious\",\n  \"Qi2023\",  \"Serious\",  \"Moderate\", \"Low\",      \"Moderate\", \"Low\",      \"Low\",   \"Moderate\", \"Serious\",\n  \"Li2024a\", \"Serious\",  \"Moderate\", \"Moderate\", \"Critical\", \"Low\",      \"Low\",   \"Moderate\", \"Critical\"\n)\n\ndomain_labels &lt;- c(\n  D1 = \"D1 Confounding\", D2 = \"D2 Selection of participants\",\n  D3 = \"D3 Classification of interventions\", D4 = \"D4 Deviations (co-interventions/timing)\",\n  D5 = \"D5 Missing data\", D6 = \"D6 Measurement of outcome\",\n  D7 = \"D7 Selection of reported result\", Overall = \"Overall\")\n\nrob |&gt; knitr::kable()\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nstudy\nD1\nD2\nD3\nD4\nD5\nD6\nD7\nOverall\n\n\n\n\nQi2025\nSerious\nModerate\nLow\nSerious\nModerate\nLow\nSerious\nSerious\n\n\nXu2025\nSerious\nModerate\nLow\nSerious\nModerate\nLow\nModerate\nSerious\n\n\nLu2017\nSerious\nSerious\nLow\nModerate\nModerate\nLow\nModerate\nSerious\n\n\nJin2019\nSerious\nModerate\nLow\nModerate\nLow\nLow\nModerate\nSerious\n\n\nQi2023\nSerious\nModerate\nLow\nModerate\nLow\nLow\nModerate\nSerious\n\n\nLi2024a\nSerious\nModerate\nModerate\nCritical\nLow\nLow\nModerate\nCritical"
+  },
+  {
+    "objectID": "risk-of-bias.html#traffic-light-plot",
+    "href": "risk-of-bias.html#traffic-light-plot",
+    "title": "Risk of bias",
+    "section": "Traffic-light plot",
+    "text": "Traffic-light plot\n\n\nShow code\nlevs &lt;- c(\"Low\", \"Moderate\", \"Serious\", \"Critical\")\nrob_long &lt;- rob |&gt;\n  pivot_longer(-study, names_to = \"domain\", values_to = \"judgment\") |&gt;\n  mutate(judgment = factor(judgment, levels = levs),\n         domain = factor(domain, levels = names(domain_labels), labels = domain_labels),\n         study = factor(study, levels = rev(c(\"Qi2025\",\"Xu2025\",\"Lu2017\",\"Jin2019\",\"Qi2023\",\"Li2024a\"))))\n\npal &lt;- c(Low = jama_blue_grey[[\"light\"]], Moderate = jama_blue_grey[[\"medium\"]],\n         Serious = jama_blue_grey[[\"steel\"]], Critical = jama_blue_grey[[\"accent\"]])\n\nggplot(rob_long, aes(domain, study, fill = judgment)) +\n  geom_tile(color = \"white\", linewidth = 1) +\n  geom_text(aes(label = substr(judgment, 1, 1),\n                color = judgment %in% c(\"Serious\", \"Critical\")), size = 3.4, fontface = \"bold\") +\n  scale_fill_manual(values = pal, name = \"Concern\") +\n  scale_color_manual(values = c(`TRUE` = \"white\", `FALSE` = \"#243B53\"), guide = \"none\") +\n  labs(x = NULL, y = NULL, title = \"Preliminary ROBINS-I traffic-light plot\",\n       subtitle = \"Darker = higher concern; L/M/S/C = Low/Moderate/Serious/Critical\") +\n  theme_jama() +\n  theme(axis.text.x = element_text(angle = 30, hjust = 1))"
+  },
+  {
+    "objectID": "risk-of-bias.html#rationale",
+    "href": "risk-of-bias.html#rationale",
+    "title": "Risk of bias",
+    "section": "Rationale",
+    "text": "Rationale\n\nD1 Confounding — Serious for all. Non-randomised assignment; confounding by indication is likely. Xu2025’s monotherapy arm was systematically sicker; Qi2025’s comparison is an unadjusted subgroup from a risk-factor study.\nD4 Deviations / co-interventions — Critical for Li2024a. Its combination arm bundles caspofungin with a corticosteroid and a lower TMP dose, so an echinocandin effect cannot be isolated. Mixed initial/salvage timing raises concern for Qi2025 and Xu2025.\nD2 Selection — Serious for Lu2017, a tiny single-centre case series (n = 5 vs 6).\nD6 Outcome measurement — Low for all: all-cause mortality is an objective endpoint.\n\nOverall, the body of evidence is at serious risk of bias (driven by confounding), with Li2024a at critical risk. This reinforces the cautious, inconclusive interpretation of the pooled estimate."
+  },
+  {
+    "objectID": "model-fit.html",
+    "href": "model-fit.html",
+    "title": "Model fit and MCMC convergence",
+    "section": "",
+    "text": "Show code\nsource(\"analysis/meta_helpers.R\")\nlibrary(coda)\nma &lt;- load_ma()"
+  },
+  {
+    "objectID": "model-fit.html#the-model",
+    "href": "model-fit.html#the-model",
+    "title": "Model fit and MCMC convergence",
+    "section": "The model",
+    "text": "The model\nThe headline Bayesian estimates (Bayesian page) are computed semi-analytically by bayesmeta and therefore do not involve MCMC. To provide genuine sampler diagnostics — and an independent check of that computation — we refit the identical model by MCMC in JAGS.\nFor studies \\[i = 1, \\dots, k\\] with observed log odds ratio \\[y_i\\] and standard error \\[s_i\\]:\n\\[y_i \\sim \\mathrm{Normal}(\\theta_i,\\ s_i^2), \\qquad \\theta_i \\sim \\mathrm{Normal}(\\mu,\\ \\tau^2)\\]\nwith weakly informative priors \\[\\mu \\sim \\mathrm{Normal}(0, 1.5^2)\\] and \\[\\tau \\sim \\mathrm{half\\text{-}Normal}(0.5)\\]. The pooled odds ratio is \\[\\mathrm{OR} = e^{\\mu}\\]. We ran 4 chains, 1000 adaptation + 2000 burn-in iterations, then 10,000 sampling iterations per chain.\n\n\nShow code\ns &lt;- fit_jags(ma, monitor = c(\"mu\", \"tau\", \"OR\", \"theta\"))\n\n\nLinked to JAGS 4.3.2\n\n\nLoaded modules: basemod,bugs"
+  },
+  {
+    "objectID": "model-fit.html#convergence-diagnostics",
+    "href": "model-fit.html#convergence-diagnostics",
+    "title": "Model fit and MCMC convergence",
+    "section": "Convergence diagnostics",
+    "text": "Convergence diagnostics\n\n\nShow code\nrhat &lt;- gelman.diag(s[, c(\"mu\", \"tau\")], multivariate = FALSE)$psrf\ness  &lt;- effectiveSize(s[, c(\"mu\", \"tau\", \"OR\")])\n\ntibble(Parameter = c(\"mu (log-OR)\", \"tau\"),\n       `R-hat` = round(rhat[, 1], 3),\n       `R-hat upper CI` = round(rhat[, 2], 3),\n       `Effective sample size` = round(ess[c(\"mu\", \"tau\")])) |&gt;\n  knitr::kable()\n\n\n\n\n\nParameter\nR-hat\nR-hat upper CI\nEffective sample size\n\n\n\n\nmu (log-OR)\n1.000\n1.001\n5319\n\n\ntau\n1.001\n1.004\n2177\n\n\n\n\n\nAll potential scale reduction factors (R̂) are at or very close to 1.00 and effective sample sizes are in the thousands, indicating the chains have converged and mixed well."
+  },
+  {
+    "objectID": "model-fit.html#trace-and-density",
+    "href": "model-fit.html#trace-and-density",
+    "title": "Model fit and MCMC convergence",
+    "section": "Trace and density",
+    "text": "Trace and density\n\n\nShow code\ndraws &lt;- purrr::imap_dfr(s, function(chain, i)\n  as_tibble(as.matrix(chain)[, c(\"mu\", \"tau\")]) |&gt;\n    mutate(chain = factor(i), iter = row_number()))\ndraws_long &lt;- pivot_longer(draws, c(mu, tau), names_to = \"parameter\", values_to = \"value\")\n\nggplot(draws_long, aes(iter, value, color = chain)) +\n  geom_line(alpha = 0.6, linewidth = 0.25) +\n  facet_wrap(~ parameter, ncol = 1, scales = \"free_y\") +\n  scale_color_manual(values = jama_chains) +\n  labs(x = \"Iteration\", y = NULL, title = \"Trace plots (4 chains)\") +\n  theme_jama()\n\n\n\n\n\n\n\n\n\n\n\nShow code\nggplot(draws_long, aes(value, color = chain)) +\n  geom_density() +\n  facet_wrap(~ parameter, ncol = 2, scales = \"free\") +\n  scale_color_manual(values = jama_chains) +\n  labs(x = NULL, y = \"Density\", title = \"Posterior density by chain\") +\n  theme_jama()\n\n\n\n\n\n\n\n\n\nThe chains are indistinguishable, with no drift or stickiness in the traces and overlapping per-chain densities."
+  },
+  {
+    "objectID": "model-fit.html#cross-check-jags-vs-bayesmeta",
+    "href": "model-fit.html#cross-check-jags-vs-bayesmeta",
+    "title": "Model fit and MCMC convergence",
+    "section": "Cross-check: JAGS vs bayesmeta",
+    "text": "Cross-check: JAGS vs bayesmeta\n\n\nShow code\nbm_sens  &lt;- fit_bm(ma)\njags_or  &lt;- exp(summary(s)$quantiles[\"mu\", c(\"2.5%\", \"50%\", \"97.5%\")])\ntibble(\n  Engine = c(\"JAGS (MCMC)\", \"bayesmeta (semi-analytic)\"),\n  `OR median` = c(jags_or[2], or_ci(bm_sens)[1]),\n  `CrI lower` = c(jags_or[1], or_ci(bm_sens)[2]),\n  `CrI upper` = c(jags_or[3], or_ci(bm_sens)[3])\n) |&gt;\n  mutate(across(where(is.numeric), ~round(.x, 3))) |&gt;\n  knitr::kable()\n\n\n\n\n\nEngine\nOR median\nCrI lower\nCrI upper\n\n\n\n\nJAGS (MCMC)\n0.759\n0.428\n1.356\n\n\nbayesmeta (semi-analytic)\n0.760\n0.426\n1.367\n\n\n\n\n\nThe two independent implementations agree to within Monte Carlo error, confirming the semi-analytic posterior used elsewhere on this site."
+  },
+  {
+    "objectID": "frequentist.html",
+    "href": "frequentist.html",
+    "title": "Frequentist meta-analysis",
+    "section": "",
+    "text": "Show code\nsource(\"analysis/meta_helpers.R\")\nma &lt;- load_ma()\nFor comparability with the wider literature (including Yang et al. 2026, who used a fixed-effect Mantel-Haenszel model), we fit a frequentist synthesis alongside the Bayesian analysis. The random-effects model (REML) is the primary frequentist estimate; the Mantel-Haenszel fixed-effect model is shown for comparison.\nShow code\nre &lt;- rma(yi, vi, data = ma, method = \"REML\")            # random-effects (REML)\nmh &lt;- rma.mh(ai = e_comb, n1i = n_comb, ci = e_ref, n2i = n_ref,\n             data = ma, measure = \"OR\")                   # Mantel-Haenszel fixed-effect\nre\n\n\n\nRandom-Effects Model (k = 6; tau^2 estimator: REML)\n\ntau^2 (estimated amount of total heterogeneity): 0.2150 (SE = 0.3269)\ntau (square root of estimated tau^2 value):      0.4637\nI^2 (total heterogeneity / total variability):   42.10%\nH^2 (total variability / sampling variability):  1.73\n\nTest for Heterogeneity:\nQ(df = 5) = 7.9981, p-val = 0.1563\n\nModel Results:\n\nestimate      se     zval    pval    ci.lb   ci.ub    \n -0.2814  0.3008  -0.9354  0.3496  -0.8710  0.3082    \n\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1"
+  },
+  {
+    "objectID": "frequentist.html#pooled-estimates",
+    "href": "frequentist.html#pooled-estimates",
+    "title": "Frequentist meta-analysis",
+    "section": "Pooled estimates",
+    "text": "Pooled estimates\n\n\nShow code\ntibble(\n  Model = c(\"Random-effects (REML)\", \"Mantel-Haenszel (fixed)\"),\n  OR = c(exp(re$b[1]), exp(mh$b[1])),\n  `95% CI lower` = c(exp(re$ci.lb), exp(mh$ci.lb)),\n  `95% CI upper` = c(exp(re$ci.ub), exp(mh$ci.ub))\n) |&gt;\n  mutate(across(where(is.numeric), ~round(.x, 2))) |&gt;\n  knitr::kable()\n\n\n\n\n\nModel\nOR\n95% CI lower\n95% CI upper\n\n\n\n\nRandom-effects (REML)\n0.75\n0.42\n1.36\n\n\nMantel-Haenszel (fixed)\n0.75\n0.50\n1.13\n\n\n\n\n\nThe random-effects pooled odds ratio is 0.75 (95% CI 0.42-1.36). Between-study heterogeneity is moderate (I² = 42%, τ² = 0.21; Cochran’s Q = 8.0, p = 0.16). The interval crosses OR = 1, so the effect is not statistically significant."
+  },
+  {
+    "objectID": "frequentist.html#forest-plot",
+    "href": "frequentist.html#forest-plot",
+    "title": "Frequentist meta-analysis",
+    "section": "Forest plot",
+    "text": "Forest plot\n\n\nShow code\nest &lt;- ma |&gt;\n  transmute(label = study, kind = \"study\",\n            OR = exp(yi), lo = exp(yi - 1.96 * sei), hi = exp(yi + 1.96 * sei))\npool &lt;- tibble(\n  label = c(\"Random-effects (REML)\", \"Mantel-Haenszel (fixed)\"), kind = \"pooled\",\n  OR = c(exp(re$b[1]), exp(mh$b[1])),\n  lo = c(exp(re$ci.lb), exp(mh$ci.lb)),\n  hi = c(exp(re$ci.ub), exp(mh$ci.ub)))\n\nbind_rows(est, pool) |&gt;\n  mutate(label = factor(label, levels = rev(c(ma$study,\n           \"Random-effects (REML)\", \"Mantel-Haenszel (fixed)\")))) |&gt;\n  ggplot(aes(OR, label, color = kind)) +\n  geom_vline(xintercept = 1, linetype = \"dashed\", color = \"grey50\") +\n  geom_pointrange(aes(xmin = lo, xmax = hi, shape = kind == \"pooled\"), linewidth = 0.6) +\n  scale_x_log10(breaks = c(0.1, 0.25, 0.5, 1, 2, 4)) +\n  scale_color_manual(values = c(study = jama_blue_grey[[\"medium\"]],\n                                pooled = jama_blue_grey[[\"accent\"]]), guide = \"none\") +\n  scale_shape_manual(values = c(16, 18), guide = \"none\") +\n  labs(x = \"Odds ratio (log scale) \\u2014 &lt;1 favours combination\", y = NULL,\n       title = \"Frequentist forest plot\",\n       subtitle = \"Per-study estimates with random-effects and fixed-effect pooled odds ratios\") +\n  theme_jama()"
+  },
+  {
+    "objectID": "frequentist.html#funnel-plot",
+    "href": "frequentist.html#funnel-plot",
+    "title": "Frequentist meta-analysis",
+    "section": "Funnel plot",
+    "text": "Funnel plot\nWith only six studies, formal small-study-effect tests (e.g., Egger’s test) are underpowered and not recommended; the funnel plot is shown for completeness only.\n\n\nShow code\nggplot(ma, aes(x = OR, y = sei)) +\n  geom_vline(xintercept = exp(re$b[1]), linetype = \"dashed\", color = \"grey50\") +\n  geom_point(size = 2.4, color = jama_blue_grey[[\"steel\"]]) +\n  scale_x_log10(breaks = c(0.25, 0.5, 1, 2, 4)) +\n  scale_y_reverse() +\n  labs(x = \"Odds ratio (log scale)\", y = \"Standard error\",\n       title = \"Funnel plot\",\n       subtitle = \"Dashed line = random-effects pooled estimate\") +\n  theme_jama()"
+  },
+  {
+    "objectID": "studies.html",
+    "href": "studies.html",
+    "title": "Included studies",
+    "section": "",
+    "text": "Show code\nsource(\"analysis/meta_helpers.R\")\nma &lt;- load_ma()"
+  },
+  {
+    "objectID": "studies.html#analytic-dataset",
+    "href": "studies.html#analytic-dataset",
+    "title": "Included studies",
+    "section": "Analytic dataset",
+    "text": "Analytic dataset\nAll six included studies are observational (retrospective cohorts, or a small case series for Lu2017) of HIV-negative / immunocompromised adults. Each contributes one two-arm comparison: adjunctive echinocandin/caspofungin + TMP-SMX versus TMP-SMX monotherapy, with all-cause mortality at the timepoint shown.\n\n\nShow code\nma |&gt;\n  transmute(Study = study, Tier = tier, Timing = timing,\n            `Mortality timepoint` = timepoint,\n            `Combination (deaths/N)` = paste0(e_comb, \"/\", n_comb),\n            `Monotherapy (deaths/N)` = paste0(e_ref, \"/\", n_ref),\n            OR = round(OR, 2),\n            `95% CI` = sprintf(\"%.2f\\u2013%.2f\", exp(yi - 1.96 * sei), exp(yi + 1.96 * sei))) |&gt;\n  knitr::kable()\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nStudy\nTier\nTiming\nMortality timepoint\nCombination (deaths/N)\nMonotherapy (deaths/N)\nOR\n95% CI\n\n\n\n\nQi2025\nprimary\nmixed\nin-hospital\n18/35\n31/79\n1.64\n0.74–3.66\n\n\nXu2025\nprimary\nmixed\n28-day\n33/89\n19/31\n0.37\n0.16–0.86\n\n\nLu2017\nprimary\nmixed\nepisode/in-hosp\n1/5\n2/6\n0.50\n0.03–7.99\n\n\nJin2019\nsensitivity\ninitial\n3-month\n8/35\n33/91\n0.52\n0.21–1.28\n\n\nQi2023\nsensitivity\ninitial\n90-day\n17/43\n10/21\n0.72\n0.25–2.06\n\n\nLi2024a\nsensitivity\ninitial\nepisode (unspec)\n5/20\n3/18\n1.67\n0.34–8.26\n\n\n\n\n\nThe primary tier comprises studies reporting in-hospital or ~30-day mortality; the sensitivity tier adds studies reporting longer-timepoint mortality. Treatment timing (initial vs mixed) is classified following Yang et al. (2026); no salvage-vs-monotherapy study is available."
+  },
+  {
+    "objectID": "studies.html#verification-notes",
+    "href": "studies.html#verification-notes",
+    "title": "Included studies",
+    "section": "Verification notes",
+    "text": "Verification notes\nEvery count above was checked against the source full text. Key decisions:\n\n\n\nStudy\nNote\n\n\n\n\nQi2025\nFull-cohort Table 4 (18/35 vs 31/79). The same PUMCH cohort as Yanmeng2026 (duplicate removed). Prior meta-analyses that report 18/27 used the ventilated subgroup.\n\n\nXu2025\nMulticentre cohort; the monotherapy arm was sicker (more solid tumour, more aspergillosis), so the crude comparison is subject to confounding by indication. Most influential study (see sensitivity).\n\n\nLu2017\nVery small case series (n = 5 vs 6), heart-transplant recipients; mortality timepoint not explicitly defined.\n\n\nJin2019\n3-month mortality; full-cohort arms (not the β-D-glucan subgroups).\n\n\nQi2023\n90-day mortality; the initial caspofungin arm used (salvage arm excluded from this contrast).\n\n\nLi2024a\nConfounded: the combination arm bundles caspofungin with a corticosteroid and a lower TMP dose, so it cannot isolate an echinocandin effect. Retained in the sensitivity tier only, flagged."
+  },
+  {
+    "objectID": "studies.html#studies-not-analysed",
+    "href": "studies.html#studies-not-analysed",
+    "title": "Included studies",
+    "section": "Studies not analysed",
+    "text": "Studies not analysed\n\nTian2020 — excluded: an HIV-positive cohort (published in HIV Medicine), outside the population.\nWang2019 pilot, Zhang2018 — no TMP-SMX monotherapy comparator arm.\nTaniguchi (administrative dataset) — mortality events were back-calculated; excluded from the primary synthesis.\nSeven studies in Yang et al. that we could not retrieve — mostly Chinese-language papers / theses (CNKI/Wanfang); one (Wang-ZG-2019) was obtained and found ineligible (single-arm). See conclusions."
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Adjunctive echinocandin for HIV-negative Pneumocystis pneumonia",
+    "section": "",
+    "text": "Note\n\n\n\nThis report was generated using AI under general human direction. At the time of generation, the contents have not been comprehensively reviewed by a human analyst."
+  },
+  {
+    "objectID": "index.html#overview",
+    "href": "index.html#overview",
+    "title": "Adjunctive echinocandin for HIV-negative Pneumocystis pneumonia",
+    "section": "Overview",
+    "text": "Overview\nThis site presents an interim meta-analysis of adjunctive echinocandin/caspofungin plus trimethoprim-sulfamethoxazole (TMP-SMX) versus TMP-SMX monotherapy for all-cause mortality in HIV-negative / immunocompromised adults with Pneumocystis jirovecii pneumonia (PCP/PJP). It corresponds to the PROSPERO-registered review question on combination and adjunctive treatment regimens, and reports both a frequentist and a Bayesian synthesis of the same six source-verified studies."
+  },
+  {
+    "objectID": "index.html#headline-finding",
+    "href": "index.html#headline-finding",
+    "title": "Adjunctive echinocandin for HIV-negative Pneumocystis pneumonia",
+    "section": "Headline finding",
+    "text": "Headline finding\nPooling the six source-verified studies, adjunctive echinocandin shows a possible but inconclusive mortality benefit versus monotherapy — the interval includes no effect under both frameworks.\n\n\n\nAnalysis\nStudies\nPooled OR (95% interval)\n\n\n\n\nBayesian sensitivity (primary reporting)\n6\n0.76 (0.43–1.37)\n\n\nFrequentist random-effects (REML)\n6\n0.75 (0.42–1.36)\n\n\nBayesian primary (in-hospital / ~30-day)\n3\n0.78 (0.31–1.93)\n\n\n\nAn OR below 1 favours combination therapy."
+  },
+  {
+    "objectID": "index.html#how-to-navigate",
+    "href": "index.html#how-to-navigate",
+    "title": "Adjunctive echinocandin for HIV-negative Pneumocystis pneumonia",
+    "section": "How to navigate",
+    "text": "How to navigate\n\nIncluded studies — the analytic dataset and per-study verification notes.\nPRISMA flow — study selection for this contrast.\nFrequentist results — REML and Mantel-Haenszel pooling, heterogeneity, funnel plot.\nBayesian results — posterior forest plot and marginal posteriors.\nModel fit & MCMC — JAGS refit with convergence diagnostics (R̂, ESS, trace plots).\nSensitivity — leave-one-out, prior sensitivity, timing subgroups.\nRisk of bias — preliminary ROBINS-I assessment.\nConclusions — summary and implications."
+  },
+  {
+    "objectID": "index.html#what-was-verified",
+    "href": "index.html#what-was-verified",
+    "title": "Adjunctive echinocandin for HIV-negative Pneumocystis pneumonia",
+    "section": "What was verified",
+    "text": "What was verified\n\nTian2020 excluded — an HIV-positive cohort that had been misclassified in the machine-draft extraction.\nQi2025 / Yanmeng2026 de-duplicated — the same PUMCH cohort; the full-cohort comparison (not the ventilated subgroup) was used.\nCounts were source-checked against the original full texts for every included study."
+  },
+  {
+    "objectID": "index.html#language-lingua",
+    "href": "index.html#language-lingua",
+    "title": "Adjunctive echinocandin for HIV-negative Pneumocystis pneumonia",
+    "section": "Language / lingua",
+    "text": "Language / lingua\nUse the EN / IT buttons at the top-right of any page to switch between English and Italian (automatic Google machine translation; English is the source of record). The toggle requires an external web browser with internet access."
+  },
+  {
+    "objectID": "prisma.html",
+    "href": "prisma.html",
+    "title": "Study selection (PRISMA-style flow)",
+    "section": "",
+    "text": "The diagram below shows the analytic selection flow for the echinocandin contrast, starting from the project’s full-text extraction corpus. It is not the flow for the full systematic review: formal database screening in Covidence is ongoing, and the complete PRISMA 2020 diagram (with identification and screening counts across PubMed, Embase and Scopus) will be produced when screening is finalised.\n\n\n\n\n\nflowchart TD\n  A[\"Full-text studies in extraction corpus&lt;br/&gt;(n = 48)\"] --&gt; B[\"Comparative antifungal-regimen&lt;br/&gt;studies screened for the echinocandin contrast\"]\n  A --&gt; A1[\"Excluded: background / context-only,&lt;br/&gt;single-arm, or no eligible contrast (n = 26)\"]\n  B --&gt; C[\"Echinocandin + TMP-SMX vs TMP-SMX&lt;br/&gt;monotherapy, mortality reported\"]\n  C --&gt; E1[\"Excluded — HIV-positive cohort:&lt;br/&gt;Tian2020 (n = 1)\"]\n  C --&gt; E2[\"Excluded — duplicate cohort:&lt;br/&gt;Yanmeng2026 = Qi2025 (n = 1)\"]\n  C --&gt; E3[\"Excluded — no monotherapy comparator:&lt;br/&gt;Wang2019 pilot, Zhang2018, Wang-ZG-2019 (single-arm)\"]\n  C --&gt; E4[\"Excluded from primary — back-calculated events /&lt;br/&gt;administrative dataset: Taniguchi\"]\n  C --&gt; D[\"Included in meta-analysis&lt;br/&gt;(n = 6)\"]\n  D --&gt; D1[\"Primary — in-hospital / ~30-day:&lt;br/&gt;Qi2025, Xu2025, Lu2017\"]\n  D --&gt; D2[\"Sensitivity — longer timepoints:&lt;br/&gt;Jin2019, Qi2023, Li2024a\"]\n\n\n\n\n\n\nSix studies met criteria for the echinocandin-versus-monotherapy mortality comparison. The primary synthesis uses the three studies reporting in-hospital or ~30-day mortality; the pre-planned sensitivity synthesis adds three studies reporting longer-timepoint mortality (one of which, Li2024a, is confounded and flagged)."
+  },
+  {
+    "objectID": "bayesian.html",
+    "href": "bayesian.html",
+    "title": "Bayesian meta-analysis",
+    "section": "",
+    "text": "Show code\nsource(\"analysis/meta_helpers.R\")\nma &lt;- load_ma()\nbm_primary &lt;- fit_bm(dplyr::filter(ma, tier == \"primary\"))\nbm_sens    &lt;- fit_bm(ma)\nWe fit a Bayesian random-effects (normal-normal) model to the per-study log odds ratios, with weakly informative priors: a N(0, 1.5) prior on the pooled log-OR and a half-normal(0.5) prior on the between-study standard deviation τ. The posterior is computed semi-analytically with bayesmeta (an independent MCMC refit and its convergence diagnostics are on the Model fit & MCMC page)."
+  },
+  {
+    "objectID": "bayesian.html#pooled-estimates",
+    "href": "bayesian.html#pooled-estimates",
+    "title": "Bayesian meta-analysis",
+    "section": "Pooled estimates",
+    "text": "Pooled estimates\n\n\nShow code\ntibble(\n  Analysis = c(\"Primary (in-hospital / ~30-day)\", \"Sensitivity (+ longer timepoints)\"),\n  Studies = c(bm_primary$k, bm_sens$k),\n  OR = c(or_ci(bm_primary)[1], or_ci(bm_sens)[1]),\n  `CrI lower` = c(or_ci(bm_primary)[2], or_ci(bm_sens)[2]),\n  `CrI upper` = c(or_ci(bm_primary)[3], or_ci(bm_sens)[3]),\n  `P(OR&lt;1)` = c(bm_primary$pposterior(mu = 0), bm_sens$pposterior(mu = 0))\n) |&gt;\n  mutate(across(where(is.numeric), ~round(.x, 2))) |&gt;\n  knitr::kable()\n\n\n\n\n\n\n\n\n\n\n\n\n\nAnalysis\nStudies\nOR\nCrI lower\nCrI upper\nP(OR&lt;1)\n\n\n\n\nPrimary (in-hospital / ~30-day)\n3\n0.78\n0.31\n1.93\n0.72\n\n\nSensitivity (+ longer timepoints)\n6\n0.76\n0.43\n1.37\n0.84\n\n\n\n\n\nThe sensitivity-analysis pooled odds ratio is 0.76 (95% CrI 0.43–1.37), with a posterior probability of benefit (OR &lt; 1) of 0.84. The estimate points toward a mortality reduction but the credible interval includes no effect."
+  },
+  {
+    "objectID": "bayesian.html#posterior-forest-plot",
+    "href": "bayesian.html#posterior-forest-plot",
+    "title": "Bayesian meta-analysis",
+    "section": "Posterior forest plot",
+    "text": "Posterior forest plot\nEach row shows the posterior distribution of the study-specific (shrunken) odds ratio; open points mark the observed estimates. The bottom row is the posterior of the pooled effect μ.\n\n\nShow code\nset.seed(7183)\nps &lt;- bm_sens$rposterior(n = 6000)   # columns: tau, mu (log-OR scale)\n\n# Conditional posterior of each study's true effect given (mu, tau, y_i, sei_i)\ntheta_draws &lt;- purrr::map_dfr(seq_len(nrow(ma)), function(i) {\n  pd &lt;- 1 / ma$sei[i]^2                 # data precision\n  pp &lt;- 1 / ps[, \"tau\"]^2               # prior (between-study) precision\n  v  &lt;- 1 / (pd + pp)\n  m  &lt;- v * (ma$yi[i] * pd + ps[, \"mu\"] * pp)\n  tibble(label = ma$study[i], draw = exp(rnorm(nrow(ps), m, sqrt(v))))\n})\npooled_draws &lt;- tibble(label = \"Pooled (\\u03bc)\", draw = exp(ps[, \"mu\"]))\nalldraws &lt;- bind_rows(theta_draws, pooled_draws) |&gt;\n  mutate(label = factor(label, levels = rev(c(ma$study, \"Pooled (\\u03bc)\"))),\n         is_pooled = label == \"Pooled (\\u03bc)\")\n\nobs &lt;- ma |&gt; transmute(label = factor(study, levels = levels(alldraws$label)), OR)\n\nggplot(alldraws, aes(draw, label)) +\n  geom_vline(xintercept = 1, linetype = \"dashed\", color = \"grey50\") +\n  geom_violin(aes(fill = is_pooled), orientation = \"y\", color = NA,\n              scale = \"width\", alpha = 0.85) +\n  geom_point(data = obs, aes(OR, label), shape = 21, fill = \"white\",\n             color = jama_blue_grey[[\"dark\"]], size = 2) +\n  scale_x_log10(breaks = c(0.1, 0.25, 0.5, 1, 2, 4)) +\n  scale_fill_manual(values = c(`FALSE` = jama_blue_grey[[\"medium\"]],\n                               `TRUE`  = jama_blue_grey[[\"accent\"]]), guide = \"none\") +\n  labs(x = \"Odds ratio (log scale) \\u2014 &lt;1 favours combination\", y = NULL,\n       title = \"Posterior forest plot\",\n       subtitle = \"Posterior densities of shrunken study effects and the pooled effect; points = observed ORs\") +\n  theme_jama()"
+  },
+  {
+    "objectID": "bayesian.html#marginal-posteriors",
+    "href": "bayesian.html#marginal-posteriors",
+    "title": "Bayesian meta-analysis",
+    "section": "Marginal posteriors",
+    "text": "Marginal posteriors\n\n\nShow code\nmu_grid &lt;- seq(-2.2, 1.6, length.out = 500)\ntibble(OR = exp(mu_grid), density = bm_sens$dposterior(mu = mu_grid)) |&gt;\n  ggplot(aes(OR, density)) +\n  geom_area(fill = jama_blue_grey[[\"light\"]], color = jama_blue_grey[[\"steel\"]]) +\n  geom_vline(xintercept = 1, linetype = \"dashed\", color = \"grey50\") +\n  geom_vline(xintercept = or_ci(bm_sens)[1], color = jama_blue_grey[[\"accent\"]]) +\n  scale_x_log10(breaks = c(0.1, 0.25, 0.5, 1, 2, 4)) +\n  labs(x = \"Pooled odds ratio (log scale)\", y = \"Posterior density\",\n       title = \"Posterior of the pooled effect\",\n       subtitle = \"Solid line = posterior median; dashed = no effect\") +\n  theme_jama()\n\n\n\n\n\n\n\n\n\n\n\nShow code\ntau_grid &lt;- seq(0, 2, length.out = 500)\ntibble(tau = tau_grid, density = bm_sens$dposterior(tau = tau_grid)) |&gt;\n  ggplot(aes(tau, density)) +\n  geom_area(fill = jama_blue_grey[[\"light\"]], color = jama_blue_grey[[\"steel\"]]) +\n  labs(x = \"Between-study SD (\\u03c4, log-OR scale)\", y = \"Posterior density\",\n       title = \"Posterior of between-study heterogeneity (\\u03c4)\") +\n  theme_jama()\n\n\n\n\n\n\n\n\n\nThe heterogeneity posterior has substantial mass away from zero, consistent with the moderate I² seen in the frequentist analysis, but is imprecise given only six small studies."
+  },
+  {
+    "objectID": "sensitivity.html",
+    "href": "sensitivity.html",
+    "title": "Sensitivity analyses",
+    "section": "",
+    "text": "Show code\nsource(\"analysis/meta_helpers.R\")\nma &lt;- load_ma()\nbm_sens &lt;- fit_bm(ma)"
+  },
+  {
+    "objectID": "sensitivity.html#leave-one-out",
+    "href": "sensitivity.html#leave-one-out",
+    "title": "Sensitivity analyses",
+    "section": "Leave-one-out",
+    "text": "Leave-one-out\nEach row omits one study and refits the 6-study model.\n\n\nShow code\nloo &lt;- purrr::map_dfr(ma$study, function(s_) {\n  bm &lt;- fit_bm(dplyr::filter(ma, study != s_))\n  tibble(removed = paste0(\"\\u2212 \", s_),\n         OR = or_ci(bm)[1], lo = or_ci(bm)[2], hi = or_ci(bm)[3])\n})\nloo &lt;- bind_rows(\n  tibble(removed = \"Full model (k=6)\",\n         OR = or_ci(bm_sens)[1], lo = or_ci(bm_sens)[2], hi = or_ci(bm_sens)[3]),\n  loo)\nloo |&gt; mutate(across(where(is.numeric), ~round(.x, 2))) |&gt; knitr::kable()\n\n\n\n\n\nremoved\nOR\nlo\nhi\n\n\n\n\nFull model (k=6)\n0.76\n0.43\n1.37\n\n\n− Qi2025\n0.59\n0.32\n1.09\n\n\n− Xu2025\n0.94\n0.50\n1.76\n\n\n− Lu2017\n0.77\n0.42\n1.43\n\n\n− Jin2019\n0.84\n0.43\n1.66\n\n\n− Qi2023\n0.77\n0.39\n1.53\n\n\n− Li2024a\n0.70\n0.38\n1.31\n\n\n\n\n\n\n\nShow code\nloo |&gt;\n  mutate(kind = ifelse(removed == \"Full model (k=6)\", \"full\", \"loo\"),\n         removed = factor(removed, levels = rev(removed))) |&gt;\n  ggplot(aes(OR, removed, color = kind)) +\n  geom_vline(xintercept = 1, linetype = \"dashed\", color = \"grey50\") +\n  geom_pointrange(aes(xmin = lo, xmax = hi), shape = 18, linewidth = 0.6) +\n  scale_x_log10(breaks = c(0.25, 0.5, 1, 2)) +\n  scale_color_manual(values = c(full = jama_blue_grey[[\"accent\"]],\n                                loo = jama_blue_grey[[\"medium\"]]), guide = \"none\") +\n  labs(x = \"Pooled odds ratio (log scale) \\u2014 &lt;1 favours combination\", y = NULL,\n       title = \"Leave-one-out sensitivity\", subtitle = \"Top row = full model\") +\n  theme_jama()\n\n\n\n\n\n\n\n\n\nThe pooled OR ranges from about 0.59 (omitting Qi2025) to 0.94 (omitting Xu2025). Every leave-one-out estimate still crosses OR = 1, so no single study changes the qualitative conclusion, but Xu2025 is the single most influential study, contributing most of the apparent benefit."
+  },
+  {
+    "objectID": "sensitivity.html#prior-sensitivity",
+    "href": "sensitivity.html#prior-sensitivity",
+    "title": "Sensitivity analyses",
+    "section": "Prior sensitivity",
+    "text": "Prior sensitivity\n\n\nShow code\nfit_prior &lt;- function(mu_sd, tau_scale, fam) {\n  tp &lt;- switch(fam,\n    HN = function(t) dhalfnormal(t, scale = tau_scale),\n    HC = function(t) dhalfcauchy(t, scale = tau_scale),\n    U  = function(t) dunif(t, 0, tau_scale))\n  bayesmeta(y = ma$yi, sigma = ma$sei, labels = ma$study,\n            mu.prior = c(mean = 0, sd = mu_sd), tau.prior = tp)\n}\ngrid &lt;- tibble::tribble(\n  ~prior,                           ~mu_sd, ~tau_scale, ~fam,\n  \"Base: mu~N(0,1.5), tau~HN(0.5)\",    1.5,  0.50, \"HN\",\n  \"Tighter tau ~ HN(0.25)\",            1.5,  0.25, \"HN\",\n  \"Wider tau ~ HN(1.0)\",               1.5,  1.00, \"HN\",\n  \"tau ~ half-Cauchy(0.5)\",            1.5,  0.50, \"HC\",\n  \"tau ~ Uniform(0,2)\",                1.5,  2.00, \"U\",\n  \"Wider mu ~ N(0,10)\",                 10,  0.50, \"HN\",\n  \"Tighter mu ~ N(0,1)\",               1.0,  0.50, \"HN\")\n\npurrr::pmap_dfr(list(grid$prior, grid$mu_sd, grid$tau_scale, grid$fam),\n  function(p, m, ts, f) {\n    bm &lt;- fit_prior(m, ts, f)\n    tibble(Prior = p, OR = or_ci(bm)[1], `CrI lower` = or_ci(bm)[2],\n           `CrI upper` = or_ci(bm)[3], tau = bm$summary[\"median\", \"tau\"])\n  }) |&gt;\n  mutate(across(where(is.numeric), ~round(.x, 2))) |&gt;\n  knitr::kable()\n\n\n\n\n\nPrior\nOR\nCrI lower\nCrI upper\ntau\n\n\n\n\nBase: mu~N(0,1.5), tau~HN(0.5)\n0.76\n0.43\n1.37\n0.37\n\n\nTighter tau ~ HN(0.25)\n0.76\n0.47\n1.23\n0.22\n\n\nWider tau ~ HN(1.0)\n0.76\n0.39\n1.53\n0.49\n\n\ntau ~ half-Cauchy(0.5)\n0.76\n0.41\n1.41\n0.38\n\n\ntau ~ Uniform(0,2)\n0.77\n0.36\n1.66\n0.57\n\n\nWider mu ~ N(0,10)\n0.75\n0.42\n1.37\n0.37\n\n\nTighter mu ~ N(0,1)\n0.77\n0.44\n1.36\n0.37\n\n\n\n\n\nThe pooled OR is essentially invariant to the prior specification (0.75–0.77). Only the credible-interval width responds to the heterogeneity prior, as expected. The pooled location is therefore robust; residual uncertainty is driven by the small number of studies and genuine heterogeneity, not by prior choice."
+  },
+  {
+    "objectID": "sensitivity.html#timing-subgroups",
+    "href": "sensitivity.html#timing-subgroups",
+    "title": "Sensitivity analyses",
+    "section": "Timing subgroups",
+    "text": "Timing subgroups\nClassifying studies by treatment timing (following Yang et al. 2026):\n\n\nShow code\nbm_initial &lt;- fit_bm(dplyr::filter(ma, timing == \"initial\"))\nbm_mixed   &lt;- fit_bm(dplyr::filter(ma, timing == \"mixed\"))\ntibble(\n  Subgroup = c(\"Initial (Jin2019, Qi2023, Li2024a)\", \"Mixed (Qi2025, Xu2025, Lu2017)\"),\n  Studies = c(bm_initial$k, bm_mixed$k),\n  OR = c(or_ci(bm_initial)[1], or_ci(bm_mixed)[1]),\n  `CrI lower` = c(or_ci(bm_initial)[2], or_ci(bm_mixed)[2]),\n  `CrI upper` = c(or_ci(bm_initial)[3], or_ci(bm_mixed)[3])\n) |&gt;\n  mutate(across(where(is.numeric), ~round(.x, 2))) |&gt;\n  knitr::kable()\n\n\n\n\n\n\n\n\n\n\n\n\nSubgroup\nStudies\nOR\nCrI lower\nCrI upper\n\n\n\n\nInitial (Jin2019, Qi2023, Li2024a)\n3\n0.74\n0.34\n1.62\n\n\nMixed (Qi2025, Xu2025, Lu2017)\n3\n0.78\n0.31\n1.93\n\n\n\n\n\nNo pure salvage-vs-monotherapy study is available in our verified set, so a salvage subgroup is not estimable. Both subgroups remain inconclusive."
+  },
+  {
+    "objectID": "conclusions.html",
+    "href": "conclusions.html",
+    "title": "Conclusions",
+    "section": "",
+    "text": "Show code\nsource(\"analysis/meta_helpers.R\")\nma &lt;- load_ma()\nbm_primary &lt;- fit_bm(dplyr::filter(ma, tier == \"primary\"))\nbm_sens    &lt;- fit_bm(ma)"
+  },
+  {
+    "objectID": "conclusions.html#summary-of-findings",
+    "href": "conclusions.html#summary-of-findings",
+    "title": "Conclusions",
+    "section": "Summary of findings",
+    "text": "Summary of findings\nIn source-verified, HIV-negative PCP cohorts, adjunctive echinocandin plus TMP-SMX shows a possible but inconclusive mortality benefit versus TMP-SMX monotherapy. The sensitivity-analysis pooled odds ratio is 0.76 (95% CrI 0.43–1.37) (posterior probability of benefit 84%), and the primary analysis is 0.78 (95% CrI 0.31–1.93). The frequentist random-effects estimate (OR 0.75, 95% CI 0.42–1.36) agrees closely, as does an independent JAGS MCMC refit."
+  },
+  {
+    "objectID": "conclusions.html#what-supports-the-estimate",
+    "href": "conclusions.html#what-supports-the-estimate",
+    "title": "Conclusions",
+    "section": "What supports the estimate",
+    "text": "What supports the estimate\n\nConsistency across frameworks. Frequentist REML, semi-analytic Bayesian, and MCMC all land at OR ≈ 0.75–0.78 with intervals crossing 1.\nRobust to priors. The pooled estimate barely moves (0.75–0.77) across seven prior specifications; only interval width responds to the heterogeneity prior."
+  },
+  {
+    "objectID": "conclusions.html#what-limits-it",
+    "href": "conclusions.html#what-limits-it",
+    "title": "Conclusions",
+    "section": "What limits it",
+    "text": "What limits it\n\nSmall, observational evidence base. Six studies, all non-randomised, at serious risk of bias from confounding by indication.\nOne influential study. Removing Xu2025 moves the pool to the null (OR ≈ 0.94); removing Qi2025 strengthens it (≈ 0.59). See sensitivity.\nConfounded and heterogeneous. Li2024a bundles caspofungin with corticosteroid and a lower TMP dose; mortality timepoints and treatment timing vary across studies.\nIncomplete corpus. Seven studies included by Yang et al. (2026) could not be retrieved — mostly Chinese-language papers and theses (CNKI/Wanfang); one (Wang-ZG-2019) was obtained and found ineligible (single-arm). Their absence limits power and may introduce language/selection bias."
+  },
+  {
+    "objectID": "conclusions.html#relation-to-the-wider-literature",
+    "href": "conclusions.html#relation-to-the-wider-literature",
+    "title": "Conclusions",
+    "section": "Relation to the wider literature",
+    "text": "Relation to the wider literature\nOur result is consistent with Yang et al. (2026): their overall estimate is also null (OR 0.93), and their protective signal is confined to the initial-therapy subgroup (OR 0.50). Matching on treatment timing brings the two analyses into agreement. Note that Yang’s extraction contains errors we identified during verification (their Qi2025 numbers are from the ventilated subgroup; their “Wang 2019” treats a single-arm case series as a two-arm comparison), so it is a useful comparator rather than a ground truth."
+  },
+  {
+    "objectID": "conclusions.html#bottom-line",
+    "href": "conclusions.html#bottom-line",
+    "title": "Conclusions",
+    "section": "Bottom line",
+    "text": "Bottom line\nAdjunctive echinocandin may reduce mortality in HIV-negative PCP, most plausibly when started early, but the current evidence is too small, too observational, and too incomplete to be conclusive. Priorities before drawing a firm conclusion: complete dual human verification and formal ROBINS-I assessment, retrieve the missing Chinese-language studies, and — ultimately — randomized evidence."
+  }
+]
