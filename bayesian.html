@@ -211,6 +211,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#pooled-estimates" id="toc-pooled-estimates" class="nav-link active" data-scroll-target="#pooled-estimates">Pooled estimates</a></li>
   <li><a href="#posterior-forest-plot" id="toc-posterior-forest-plot" class="nav-link" data-scroll-target="#posterior-forest-plot">Posterior forest plot</a></li>
   <li><a href="#marginal-posteriors" id="toc-marginal-posteriors" class="nav-link" data-scroll-target="#marginal-posteriors">Marginal posteriors</a></li>
+  <li><a href="#absolute-effect-nnt-and-prediction-interval" id="toc-absolute-effect-nnt-and-prediction-interval" class="nav-link" data-scroll-target="#absolute-effect-nnt-and-prediction-interval">Absolute effect, NNT, and prediction interval</a></li>
+  <li><a href="#secondary-outcome-clinical-response" id="toc-secondary-outcome-clinical-response" class="nav-link" data-scroll-target="#secondary-outcome-clinical-response">Secondary outcome: clinical response</a></li>
   </ul>
 </nav>
     </div>
@@ -397,6 +399,170 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <p>The heterogeneity posterior has substantial mass away from zero, consistent with the moderate I² seen in the <a href="./frequentist.html">frequentist analysis</a>, but is imprecise given only six small studies.</p>
+</section>
+<section id="absolute-effect-nnt-and-prediction-interval" class="level2">
+<h2 class="anchored" data-anchor-id="absolute-effect-nnt-and-prediction-interval">Absolute effect, NNT, and prediction interval</h2>
+<p>Beyond the odds ratio, two further summaries aid interpretation: the absolute <strong>risk difference</strong> (with the implied number needed to treat) and a <strong>95% prediction interval</strong> — the range within which the true effect of a <em>new</em> study would be expected to fall. The prediction interval accounts for between-study heterogeneity and is therefore wider than the credible interval for the mean effect.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Risk difference (Bayesian): mu ~ N(0, 0.5), tau ~ half-normal(0.2) on the RD scale</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>maRD <span class="ot">&lt;-</span> <span class="fu">escalc</span>(<span class="at">measure =</span> <span class="st">"RD"</span>, <span class="at">ai =</span> e_comb, <span class="at">n1i =</span> n_comb, <span class="at">ci =</span> e_ref, <span class="at">n2i =</span> n_ref,</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">data =</span> ma, <span class="at">slab =</span> study)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>maRD<span class="sc">$</span>sei <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(maRD<span class="sc">$</span>vi)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>bm_rd <span class="ot">&lt;-</span> <span class="fu">bayesmeta</span>(<span class="at">y =</span> maRD<span class="sc">$</span>yi, <span class="at">sigma =</span> maRD<span class="sc">$</span>sei, <span class="at">labels =</span> maRD<span class="sc">$</span>study,</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>                   <span class="at">mu.prior  =</span> <span class="fu">c</span>(<span class="at">mean =</span> <span class="dv">0</span>, <span class="at">sd =</span> <span class="fl">0.5</span>),</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>                   <span class="at">tau.prior =</span> <span class="cf">function</span>(t) <span class="fu">dhalfnormal</span>(t, <span class="at">scale =</span> <span class="fl">0.2</span>))</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>rd <span class="ot">&lt;-</span> bm_rd<span class="sc">$</span>summary[, <span class="st">"mu"</span>]</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="co"># 95% prediction interval (OR scale) from the odds-ratio model's predictive distribution</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">3391</span>)</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">&lt;-</span> <span class="fu">exp</span>(<span class="fu">quantile</span>(bm_sens<span class="sc">$</span><span class="fu">rposterior</span>(<span class="at">n =</span> <span class="fl">2e4</span>, <span class="at">predict =</span> <span class="cn">TRUE</span>)[, <span class="st">"theta"</span>], <span class="fu">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>)))</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">Quantity =</span> <span class="fu">c</span>(<span class="st">"Pooled odds ratio"</span>, <span class="st">"Risk difference"</span>, <span class="st">"Number needed to treat (point)"</span>,</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>               <span class="st">"95% prediction interval (OR)"</span>),</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">Estimate =</span> <span class="fu">c</span>(<span class="fu">fmt</span>(bm_sens),</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>               <span class="fu">sprintf</span>(<span class="st">"%.1f%% (95%% CrI %.1f%% to %.1f%%)"</span>,</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>                       <span class="dv">100</span> <span class="sc">*</span> rd[<span class="st">"median"</span>], <span class="dv">100</span> <span class="sc">*</span> rd[<span class="st">"95% lower"</span>], <span class="dv">100</span> <span class="sc">*</span> rd[<span class="st">"95% upper"</span>]),</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>               <span class="fu">sprintf</span>(<span class="st">"%.0f (to prevent one death)"</span>, <span class="dv">1</span> <span class="sc">/</span> <span class="fu">abs</span>(rd[<span class="st">"median"</span>])),</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>               <span class="fu">sprintf</span>(<span class="st">"%.2f to %.2f"</span>, pred[<span class="dv">1</span>], pred[<span class="dv">2</span>]))</span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span> knitr<span class="sc">::</span><span class="fu">kable</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Quantity</th>
+<th style="text-align: left;">Estimate</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Pooled odds ratio</td>
+<td style="text-align: left;">0.76 (95% CrI 0.43–1.37)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Risk difference</td>
+<td style="text-align: left;">-6.2% (95% CrI -21.0% to 8.9%)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Number needed to treat (point)</td>
+<td style="text-align: left;">16 (to prevent one death)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">95% prediction interval (OR)</td>
+<td style="text-align: left;">0.24 to 2.43</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>The pooled risk difference is about 6 fewer deaths per 100 patients, but its credible interval spans benefit and harm, so the point NNT of 16 is highly uncertain. The <strong>prediction interval (OR 0.24-2.43)</strong> is the key caution: in a new setting the true effect could plausibly range from a substantial mortality reduction to a doubling of the odds of death.</p>
+</section>
+<section id="secondary-outcome-clinical-response" class="level2">
+<h2 class="anchored" data-anchor-id="secondary-outcome-clinical-response">Secondary outcome: clinical response</h2>
+<p>Three studies report clinical response/cure for both arms. Here the event is a <em>good</em> outcome, so an odds ratio <strong>above 1 favours combination therapy</strong>.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>resp <span class="ot">&lt;-</span> <span class="fu">tribble</span>(</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="sc">~</span>study,    <span class="sc">~</span>e_comb, <span class="sc">~</span>n_comb, <span class="sc">~</span>e_ref, <span class="sc">~</span>n_ref, <span class="sc">~</span>confounded,</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Jin2019"</span>,      <span class="dv">24</span>,      <span class="dv">35</span>,     <span class="dv">54</span>,     <span class="dv">91</span>, <span class="cn">FALSE</span>,</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Qi2023"</span>,       <span class="dv">33</span>,      <span class="dv">43</span>,     <span class="dv">11</span>,     <span class="dv">21</span>, <span class="cn">FALSE</span>,</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Li2024a"</span>,      <span class="dv">20</span>,      <span class="dv">20</span>,     <span class="dv">12</span>,     <span class="dv">18</span>, <span class="cn">TRUE</span>)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>respE <span class="ot">&lt;-</span> <span class="fu">escalc</span>(<span class="at">measure =</span> <span class="st">"OR"</span>, <span class="at">ai =</span> e_comb, <span class="at">n1i =</span> n_comb, <span class="at">ci =</span> e_ref, <span class="at">n2i =</span> n_ref,</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>                <span class="at">data =</span> resp, <span class="at">slab =</span> study)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>respE<span class="sc">$</span>sei <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(respE<span class="sc">$</span>vi); respE<span class="sc">$</span>OR <span class="ot">&lt;-</span> <span class="fu">exp</span>(respE<span class="sc">$</span>yi)</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>bm_resp_clean <span class="ot">&lt;-</span> <span class="fu">fit_bm</span>(<span class="fu">filter</span>(respE, <span class="sc">!</span>confounded))</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>bm_resp_all   <span class="ot">&lt;-</span> <span class="fu">fit_bm</span>(respE)</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>respE <span class="sc">|&gt;</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute</span>(<span class="at">Study =</span> study,</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>            <span class="st">`</span><span class="at">Response (comb)</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">paste0</span>(e_comb, <span class="st">"/"</span>, n_comb),</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>            <span class="st">`</span><span class="at">Response (mono)</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">paste0</span>(e_ref, <span class="st">"/"</span>, n_ref),</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>            <span class="at">OR =</span> <span class="fu">round</span>(OR, <span class="dv">2</span>),</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>            <span class="at">Note =</span> <span class="fu">ifelse</span>(confounded, <span class="st">"confounded; 20/20 \u2192 implausible outlier"</span>, <span class="st">""</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 9%">
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 6%">
+<col style="width: 46%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Study</th>
+<th style="text-align: left;">Response (comb)</th>
+<th style="text-align: left;">Response (mono)</th>
+<th style="text-align: right;">OR</th>
+<th style="text-align: left;">Note</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Jin2019</td>
+<td style="text-align: left;">24/35</td>
+<td style="text-align: left;">54/91</td>
+<td style="text-align: right;">1.49</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Qi2023</td>
+<td style="text-align: left;">33/43</td>
+<td style="text-align: left;">11/21</td>
+<td style="text-align: right;">3.00</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Li2024a</td>
+<td style="text-align: left;">20/20</td>
+<td style="text-align: left;">12/18</td>
+<td style="text-align: right;">21.32</td>
+<td style="text-align: left;">confounded; 20/20 → implausible outlier</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>Excluding the confounded Li2024a (whose 20/20 response yields an implausible OR 248 21), the pooled response odds ratio is 1.87 (95% CrI 0.78–4.46); including it, 2.19 (95% CrI 0.95–5.24). The direction favours combination therapy and is consistent with Yang et al.’s reported response benefit (OR 2.30), but our smaller set does not reach conclusiveness (the credible interval includes 1).</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>est <span class="ot">&lt;-</span> respE <span class="sc">|&gt;</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute</span>(<span class="at">label =</span> study, <span class="at">kind =</span> <span class="st">"study"</span>,</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>            <span class="at">OR =</span> <span class="fu">exp</span>(yi), <span class="at">lo =</span> <span class="fu">exp</span>(yi <span class="sc">-</span> <span class="fl">1.96</span> <span class="sc">*</span> sei), <span class="at">hi =</span> <span class="fu">exp</span>(yi <span class="sc">+</span> <span class="fl">1.96</span> <span class="sc">*</span> sei))</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>pool <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">label =</span> <span class="fu">c</span>(<span class="st">"Pooled (k=2, clean)"</span>, <span class="st">"Pooled (k=3, incl. Li2024a)"</span>), <span class="at">kind =</span> <span class="st">"pooled"</span>,</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">OR =</span> <span class="fu">c</span>(<span class="fu">or_ci</span>(bm_resp_clean)[<span class="dv">1</span>], <span class="fu">or_ci</span>(bm_resp_all)[<span class="dv">1</span>]),</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">lo =</span> <span class="fu">c</span>(<span class="fu">or_ci</span>(bm_resp_clean)[<span class="dv">2</span>], <span class="fu">or_ci</span>(bm_resp_all)[<span class="dv">2</span>]),</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">hi =</span> <span class="fu">c</span>(<span class="fu">or_ci</span>(bm_resp_clean)[<span class="dv">3</span>], <span class="fu">or_ci</span>(bm_resp_all)[<span class="dv">3</span>]))</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="fu">bind_rows</span>(est, pool) <span class="sc">|&gt;</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">label =</span> <span class="fu">factor</span>(label, <span class="at">levels =</span> <span class="fu">rev</span>(<span class="fu">c</span>(<span class="st">"Jin2019"</span>, <span class="st">"Qi2023"</span>, <span class="st">"Li2024a"</span>,</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>           <span class="st">"Pooled (k=2, clean)"</span>, <span class="st">"Pooled (k=3, incl. Li2024a)"</span>)))) <span class="sc">|&gt;</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(OR, label, <span class="at">color =</span> kind)) <span class="sc">+</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">1</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"grey50"</span>) <span class="sc">+</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_pointrange</span>(<span class="fu">aes</span>(<span class="at">xmin =</span> lo, <span class="at">xmax =</span> hi, <span class="at">shape =</span> kind <span class="sc">==</span> <span class="st">"pooled"</span>), <span class="at">linewidth =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_log10</span>(<span class="at">breaks =</span> <span class="fu">c</span>(<span class="fl">0.5</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span>)) <span class="sc">+</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="at">study =</span> jama_blue_grey[[<span class="st">"medium"</span>]],</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>                                <span class="at">pooled =</span> jama_blue_grey[[<span class="st">"accent"</span>]]), <span class="at">guide =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_shape_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="dv">16</span>, <span class="dv">18</span>), <span class="at">guide =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Odds ratio (log scale) \u2014 &gt;1 favours combination"</span>, <span class="at">y =</span> <span class="cn">NULL</span>,</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>       <span class="at">title =</span> <span class="st">"Clinical response / cure"</span>, <span class="at">subtitle =</span> <span class="st">"Event = clinical response"</span>) <span class="sc">+</span></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_jama</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="bayesian_files/figure-html/response-forest-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Need for <strong>mechanical ventilation</strong> is reported by several studies, but source verification found the figures are recorded inconsistently — largely as baseline or course-of-illness severity (need for ventilation at some point during the ICU stay) rather than a clearly-timed post-treatment event, and none of the studies time ventilation relative to treatment start. It is therefore <strong>not pooled</strong> here.</p>
 
 
 </section>
