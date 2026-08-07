@@ -209,6 +209,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
    
   <ul>
   <li><a href="#summary-of-findings" id="toc-summary-of-findings" class="nav-link active" data-scroll-target="#summary-of-findings">Summary of findings</a></li>
+  <li><a href="#beyond-mortality" id="toc-beyond-mortality" class="nav-link" data-scroll-target="#beyond-mortality">Beyond mortality</a></li>
   <li><a href="#what-supports-the-estimate" id="toc-what-supports-the-estimate" class="nav-link" data-scroll-target="#what-supports-the-estimate">What supports the estimate</a></li>
   <li><a href="#what-limits-it" id="toc-what-limits-it" class="nav-link" data-scroll-target="#what-limits-it">What limits it</a></li>
   <li><a href="#relation-to-the-wider-literature" id="toc-relation-to-the-wider-literature" class="nav-link" data-scroll-target="#relation-to-the-wider-literature">Relation to the wider literature</a></li>
@@ -244,7 +245,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(<span class="st">"analysis/meta_helpers.R"</span>)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>ma <span class="ot">&lt;-</span> <span class="fu">load_ma</span>()</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>bm_primary <span class="ot">&lt;-</span> <span class="fu">fit_bm</span>(dplyr<span class="sc">::</span><span class="fu">filter</span>(ma, tier <span class="sc">==</span> <span class="st">"primary"</span>))</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>bm_sens    <span class="ot">&lt;-</span> <span class="fu">fit_bm</span>(ma)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>bm_sens    <span class="ot">&lt;-</span> <span class="fu">fit_bm</span>(ma)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># 95% prediction interval (OR) and pooled clinical response, for the summary below</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">3391</span>)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">&lt;-</span> <span class="fu">exp</span>(<span class="fu">quantile</span>(bm_sens<span class="sc">$</span><span class="fu">rposterior</span>(<span class="at">n =</span> <span class="fl">2e4</span>, <span class="at">predict =</span> <span class="cn">TRUE</span>)[, <span class="st">"theta"</span>], <span class="fu">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>)))</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>resp <span class="ot">&lt;-</span> tibble<span class="sc">::</span><span class="fu">tribble</span>(</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="sc">~</span>study,    <span class="sc">~</span>e_comb, <span class="sc">~</span>n_comb, <span class="sc">~</span>e_ref, <span class="sc">~</span>n_ref, <span class="sc">~</span>confounded,</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Jin2019"</span>,      <span class="dv">24</span>,      <span class="dv">35</span>,     <span class="dv">54</span>,     <span class="dv">91</span>, <span class="cn">FALSE</span>,</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Qi2023"</span>,       <span class="dv">33</span>,      <span class="dv">43</span>,     <span class="dv">11</span>,     <span class="dv">21</span>, <span class="cn">FALSE</span>,</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Li2024a"</span>,      <span class="dv">20</span>,      <span class="dv">20</span>,     <span class="dv">12</span>,     <span class="dv">18</span>, <span class="cn">TRUE</span>)</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>respE <span class="ot">&lt;-</span> <span class="fu">escalc</span>(<span class="at">measure =</span> <span class="st">"OR"</span>, <span class="at">ai =</span> e_comb, <span class="at">n1i =</span> n_comb, <span class="at">ci =</span> e_ref, <span class="at">n2i =</span> n_ref,</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>                <span class="at">data =</span> resp, <span class="at">slab =</span> study)</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>respE<span class="sc">$</span>sei <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(respE<span class="sc">$</span>vi)</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>bm_resp_clean <span class="ot">&lt;-</span> <span class="fu">fit_bm</span>(dplyr<span class="sc">::</span><span class="fu">filter</span>(respE, <span class="sc">!</span>confounded))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <div class="callout callout-style-default callout-note callout-titled">
@@ -263,6 +277,10 @@ Note
 <section id="summary-of-findings" class="level2">
 <h2 class="anchored" data-anchor-id="summary-of-findings">Summary of findings</h2>
 <p>In source-verified, HIV-negative PCP cohorts, adjunctive echinocandin plus TMP-SMX shows a <strong>possible but inconclusive</strong> mortality benefit versus TMP-SMX monotherapy. The sensitivity-analysis pooled odds ratio is 0.76 (95% CrI 0.43–1.37) (posterior probability of benefit 84%), and the primary analysis is 0.78 (95% CrI 0.31–1.93). The <a href="./frequentist.html">frequentist</a> random-effects estimate (OR 0.75, 95% CI 0.42–1.36) agrees closely, as does an independent <a href="./model-fit.html">JAGS MCMC refit</a>.</p>
+</section>
+<section id="beyond-mortality" class="level2">
+<h2 class="anchored" data-anchor-id="beyond-mortality">Beyond mortality</h2>
+<p>Two further readings sharpen the interpretation. First, the <strong>95% prediction interval</strong> for the odds ratio is 0.24–2.43: even though the pooled estimate leans protective, the true effect in a new setting could plausibly range from a substantial mortality reduction to a doubling of the odds of death. Second, for the secondary outcome of <strong>clinical response</strong>, the pooled odds ratio favours combination therapy (1.87 (95% CrI 0.78–4.46), excluding the confounded Li2024a) and is directionally consistent with Yang et al.’s reported response benefit — but, like mortality, its credible interval still includes no effect. See the <a href="./bayesian.html#secondary-outcome-clinical-response">Bayesian results</a> page for details.</p>
 </section>
 <section id="what-supports-the-estimate" class="level2">
 <h2 class="anchored" data-anchor-id="what-supports-the-estimate">What supports the estimate</h2>
@@ -407,7 +425,7 @@ Note
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp("https:\/\/Russlewisbo\.github\.io\/PCP-combination\/");
+        var filterRegex = new RegExp('/' + window.location.host + '/');
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }

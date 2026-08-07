@@ -305,7 +305,7 @@
     "href": "conclusions.html",
     "title": "Conclusions",
     "section": "",
-    "text": "Show code\nsource(\"analysis/meta_helpers.R\")\nma &lt;- load_ma()\nbm_primary &lt;- fit_bm(dplyr::filter(ma, tier == \"primary\"))\nbm_sens    &lt;- fit_bm(ma)"
+    "text": "Show code\nsource(\"analysis/meta_helpers.R\")\nma &lt;- load_ma()\nbm_primary &lt;- fit_bm(dplyr::filter(ma, tier == \"primary\"))\nbm_sens    &lt;- fit_bm(ma)\n\n# 95% prediction interval (OR) and pooled clinical response, for the summary below\nset.seed(3391)\npred &lt;- exp(quantile(bm_sens$rposterior(n = 2e4, predict = TRUE)[, \"theta\"], c(0.025, 0.975)))\nresp &lt;- tibble::tribble(\n  ~study,    ~e_comb, ~n_comb, ~e_ref, ~n_ref, ~confounded,\n  \"Jin2019\",      24,      35,     54,     91, FALSE,\n  \"Qi2023\",       33,      43,     11,     21, FALSE,\n  \"Li2024a\",      20,      20,     12,     18, TRUE)\nrespE &lt;- escalc(measure = \"OR\", ai = e_comb, n1i = n_comb, ci = e_ref, n2i = n_ref,\n                data = resp, slab = study)\nrespE$sei &lt;- sqrt(respE$vi)\nbm_resp_clean &lt;- fit_bm(dplyr::filter(respE, !confounded))"
   },
   {
     "objectID": "conclusions.html#summary-of-findings",
@@ -341,5 +341,12 @@
     "title": "Conclusions",
     "section": "Bottom line",
     "text": "Bottom line\nAdjunctive echinocandin may reduce mortality in HIV-negative PCP, most plausibly when started early, but the current evidence is too small, too observational, and too incomplete to be conclusive. Priorities before drawing a firm conclusion: complete dual human verification and formal ROBINS-I assessment, retrieve the missing Chinese-language studies, and — ultimately — randomized evidence."
+  },
+  {
+    "objectID": "conclusions.html#beyond-mortality",
+    "href": "conclusions.html#beyond-mortality",
+    "title": "Conclusions",
+    "section": "Beyond mortality",
+    "text": "Beyond mortality\nTwo further readings sharpen the interpretation. First, the 95% prediction interval for the odds ratio is 0.24–2.43: even though the pooled estimate leans protective, the true effect in a new setting could plausibly range from a substantial mortality reduction to a doubling of the odds of death. Second, for the secondary outcome of clinical response, the pooled odds ratio favours combination therapy (1.87 (95% CrI 0.78–4.46), excluding the confounded Li2024a) and is directionally consistent with Yang et al.’s reported response benefit — but, like mortality, its credible interval still includes no effect. See the Bayesian results page for details."
   }
 ]
