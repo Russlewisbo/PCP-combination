@@ -10,6 +10,19 @@ source("analysis/meta_helpers.R")
 ma <- load_ma()
 bm_primary <- fit_bm(dplyr::filter(ma, tier == "primary"))
 bm_sens    <- fit_bm(ma)
+
+# 95% prediction interval (OR) and pooled clinical response, for the summary below
+set.seed(3391)
+pred <- exp(quantile(bm_sens$rposterior(n = 2e4, predict = TRUE)[, "theta"], c(0.025, 0.975)))
+resp <- tibble::tribble(
+  ~study,    ~e_comb, ~n_comb, ~e_ref, ~n_ref, ~confounded,
+  "Jin2019",      24,      35,     54,     91, FALSE,
+  "Qi2023",       33,      43,     11,     21, FALSE,
+  "Li2024a",      20,      20,     12,     18, TRUE)
+respE <- escalc(measure = "OR", ai = e_comb, n1i = n_comb, ci = e_ref, n2i = n_ref,
+                data = resp, slab = study)
+respE$sei <- sqrt(respE$vi)
+bm_resp_clean <- fit_bm(dplyr::filter(respE, !confounded))
 ```
 
 ::: {.callout-note}
@@ -26,6 +39,18 @@ benefit `{r} sprintf("%.0f%%", 100 * bm_sens$pposterior(mu = 0))`), and the prim
 analysis is `{r} fmt(bm_primary)`. The [frequentist](frequentist.qmd) random-effects
 estimate (OR 0.75, 95% CI 0.42–1.36) agrees closely, as does an independent
 [JAGS MCMC refit](model-fit.qmd).
+
+## Beyond mortality
+
+Two further readings sharpen the interpretation. First, the **95% prediction interval** for
+the odds ratio is `{r} sprintf("%.2f\u2013%.2f", pred[1], pred[2])`: even though the pooled
+estimate leans protective, the true effect in a new setting could plausibly range from a
+substantial mortality reduction to a doubling of the odds of death. Second, for the
+secondary outcome of **clinical response**, the pooled odds ratio favours combination
+therapy (`{r} fmt(bm_resp_clean)`, excluding the confounded Li2024a) and is directionally
+consistent with Yang et al.'s reported response benefit — but, like mortality, its credible
+interval still includes no effect. See the
+[Bayesian results](bayesian.qmd#secondary-outcome-clinical-response) page for details.
 
 ## What supports the estimate
 
