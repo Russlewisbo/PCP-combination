@@ -111,3 +111,107 @@ tibble(tau = tau_grid, density = bm_sens$dposterior(tau = tau_grid)) |>
 The heterogeneity posterior has substantial mass away from zero, consistent with the
 moderate I² seen in the [frequentist analysis](frequentist.qmd), but is imprecise given
 only six small studies.
+
+## Absolute effect, NNT, and prediction interval
+
+Beyond the odds ratio, two further summaries aid interpretation: the absolute **risk
+difference** (with the implied number needed to treat) and a **95% prediction interval** —
+the range within which the true effect of a *new* study would be expected to fall. The
+prediction interval accounts for between-study heterogeneity and is therefore wider than
+the credible interval for the mean effect.
+
+```{r}
+#| label: rd-nnt-pi
+# Risk difference (Bayesian): mu ~ N(0, 0.5), tau ~ half-normal(0.2) on the RD scale
+maRD <- escalc(measure = "RD", ai = e_comb, n1i = n_comb, ci = e_ref, n2i = n_ref,
+               data = ma, slab = study)
+maRD$sei <- sqrt(maRD$vi)
+bm_rd <- bayesmeta(y = maRD$yi, sigma = maRD$sei, labels = maRD$study,
+                   mu.prior  = c(mean = 0, sd = 0.5),
+                   tau.prior = function(t) dhalfnormal(t, scale = 0.2))
+rd <- bm_rd$summary[, "mu"]
+
+# 95% prediction interval (OR scale) from the odds-ratio model's predictive distribution
+set.seed(3391)
+pred <- exp(quantile(bm_sens$rposterior(n = 2e4, predict = TRUE)[, "theta"], c(0.025, 0.975)))
+
+tibble(
+  Quantity = c("Pooled odds ratio", "Risk difference", "Number needed to treat (point)",
+               "95% prediction interval (OR)"),
+  Estimate = c(fmt(bm_sens),
+               sprintf("%.1f%% (95%% CrI %.1f%% to %.1f%%)",
+                       100 * rd["median"], 100 * rd["95% lower"], 100 * rd["95% upper"]),
+               sprintf("%.0f (to prevent one death)", 1 / abs(rd["median"])),
+               sprintf("%.2f to %.2f", pred[1], pred[2]))
+) |> knitr::kable()
+```
+
+The pooled risk difference is about `{r} sprintf("%.0f", -100 * rd["median"])` fewer deaths
+per 100 patients, but its credible interval spans benefit and harm, so the point NNT of
+`{r} sprintf("%.0f", 1 / abs(rd["median"]))` is highly uncertain. The **prediction interval
+(OR `{r} sprintf("%.2f-%.2f", pred[1], pred[2])`)** is the key caution: in a new setting the
+true effect could plausibly range from a substantial mortality reduction to a doubling of
+the odds of death.
+
+## Secondary outcome: clinical response
+
+Three studies report clinical response/cure for both arms. Here the event is a *good*
+outcome, so an odds ratio **above 1 favours combination therapy**.
+
+```{r}
+#| label: response-pool
+resp <- tribble(
+  ~study,    ~e_comb, ~n_comb, ~e_ref, ~n_ref, ~confounded,
+  "Jin2019",      24,      35,     54,     91, FALSE,
+  "Qi2023",       33,      43,     11,     21, FALSE,
+  "Li2024a",      20,      20,     12,     18, TRUE)
+respE <- escalc(measure = "OR", ai = e_comb, n1i = n_comb, ci = e_ref, n2i = n_ref,
+                data = resp, slab = study)
+respE$sei <- sqrt(respE$vi); respE$OR <- exp(respE$yi)
+bm_resp_clean <- fit_bm(filter(respE, !confounded))
+bm_resp_all   <- fit_bm(respE)
+
+respE |>
+  transmute(Study = study,
+            `Response (comb)` = paste0(e_comb, "/", n_comb),
+            `Response (mono)` = paste0(e_ref, "/", n_ref),
+            OR = round(OR, 2),
+            Note = ifelse(confounded, "confounded; 20/20 \u2192 implausible outlier", "")) |>
+  knitr::kable()
+```
+
+Excluding the confounded Li2024a (whose 20/20 response yields an implausible OR \u2248 21),
+the pooled response odds ratio is `{r} fmt(bm_resp_clean)`; including it, `{r} fmt(bm_resp_all)`.
+The direction favours combination therapy and is consistent with Yang et al.'s reported
+response benefit (OR 2.30), but our smaller set does not reach conclusiveness (the credible
+interval includes 1).
+
+```{r}
+#| label: response-forest
+est <- respE |>
+  transmute(label = study, kind = "study",
+            OR = exp(yi), lo = exp(yi - 1.96 * sei), hi = exp(yi + 1.96 * sei))
+pool <- tibble(label = c("Pooled (k=2, clean)", "Pooled (k=3, incl. Li2024a)"), kind = "pooled",
+  OR = c(or_ci(bm_resp_clean)[1], or_ci(bm_resp_all)[1]),
+  lo = c(or_ci(bm_resp_clean)[2], or_ci(bm_resp_all)[2]),
+  hi = c(or_ci(bm_resp_clean)[3], or_ci(bm_resp_all)[3]))
+bind_rows(est, pool) |>
+  mutate(label = factor(label, levels = rev(c("Jin2019", "Qi2023", "Li2024a",
+           "Pooled (k=2, clean)", "Pooled (k=3, incl. Li2024a)")))) |>
+  ggplot(aes(OR, label, color = kind)) +
+  geom_vline(xintercept = 1, linetype = "dashed", color = "grey50") +
+  geom_pointrange(aes(xmin = lo, xmax = hi, shape = kind == "pooled"), linewidth = 0.6) +
+  scale_x_log10(breaks = c(0.5, 1, 2, 5, 10, 20)) +
+  scale_color_manual(values = c(study = jama_blue_grey[["medium"]],
+                                pooled = jama_blue_grey[["accent"]]), guide = "none") +
+  scale_shape_manual(values = c(16, 18), guide = "none") +
+  labs(x = "Odds ratio (log scale) \u2014 >1 favours combination", y = NULL,
+       title = "Clinical response / cure", subtitle = "Event = clinical response") +
+  theme_jama()
+```
+
+Need for **mechanical ventilation** is reported by several studies, but source
+verification found the figures are recorded inconsistently — largely as baseline or
+course-of-illness severity (need for ventilation at some point during the ICU stay) rather
+than a clearly-timed post-treatment event, and none of the studies time ventilation
+relative to treatment start. It is therefore **not pooled** here.

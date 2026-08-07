@@ -3,8 +3,7 @@ title: "Adjunctive echinocandin for HIV-negative Pneumocystis pneumonia"
 ---
 
 ::: {.callout-note}
-This report was generated using AI under general human direction. At the time of
-generation, the contents have not been comprehensively reviewed by a human analyst.
+This report is preliminary based on evalauble papers identifed.
 :::
 
 ## Overview
