@@ -209,6 +209,38 @@ bind_rows(est, pool) |>
   theme_jama()
 ```
 
+### Heterogeneity and leave-one-out
+
+```{r}
+#| label: response-heterogeneity
+re_resp_all <- rma(yi, vi, data = respE, method = "REML")
+re_resp_cln <- rma(yi, vi, data = dplyr::filter(respE, !confounded), method = "REML")
+tibble(
+  Set                   = c("Clean (k=2)", "All (k=3, incl. Li2024a)"),
+  `I^2 (%)`             = round(c(re_resp_cln$I2, re_resp_all$I2)),
+  `tau^2`               = round(c(re_resp_cln$tau2, re_resp_all$tau2), 2),
+  `Q (df), p`           = c(sprintf("%.1f (%d), %.3f", re_resp_cln$QE, re_resp_cln$k - 1, re_resp_cln$QEp),
+                            sprintf("%.1f (%d), %.3f", re_resp_all$QE, re_resp_all$k - 1, re_resp_all$QEp)),
+  `Pooled OR (95% CrI)` = c(fmt(bm_resp_clean), fmt(bm_resp_all))
+) |> knitr::kable()
+```
+
+```{r}
+#| label: response-loo
+purrr::map_dfr(respE$study, function(s_) {
+  v <- or_ci(fit_bm(dplyr::filter(respE, study != s_)))
+  tibble(`Study removed` = s_, OR = round(v[1], 2),
+         `95% CrI` = sprintf("%.2f\u2013%.2f", v[2], v[3]))
+}) |> knitr::kable()
+```
+
+Among the two unconfounded studies there is **no detectable heterogeneity** (I² = 0); the
+modest heterogeneity in the k = 3 set comes entirely from Li2024a, whose near-separation
+20/20 response inflates both its odds ratio and the between-study variance. Leave-one-out
+confirms the fragility — the pooled interval excludes 1 only when Jin2019 is dropped (leaving
+Qi2023 with the Li2024a outlier), whereas removing the confounded Li2024a returns the stable
+clean estimate. The response signal favours combination directionally but stays inconclusive.
+
 Need for **mechanical ventilation** is reported by several studies, but source
 verification found the figures are recorded inconsistently — largely as baseline or
 course-of-illness severity (need for ventilation at some point during the ICU stay) rather

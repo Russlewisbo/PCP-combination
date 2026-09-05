@@ -108,3 +108,51 @@ tibble(
 
 No pure salvage-vs-monotherapy study is available in our verified set, so a salvage
 subgroup is not estimable. Both subgroups remain inconclusive.
+
+### Formal timing test and comparison with Yang et al. 2026
+
+```{r}
+#| label: timing-vs-yang
+re_over <- rma(yi, vi, data = ma, method = "REML")
+re_init <- rma(yi, vi, data = dplyr::filter(ma, timing == "initial"), method = "REML")
+re_mix  <- rma(yi, vi, data = dplyr::filter(ma, timing == "mixed"),   method = "REML")
+re_mod  <- rma(yi, vi, mods = ~factor(timing), data = ma, method = "REML")
+
+ours <- tibble(Analysis = c("Overall (k=6)", "Initial (k=3)", "Mixed (k=3)"),
+  OR = c(exp(re_over$b), exp(re_init$b), exp(re_mix$b)),
+  lo = c(exp(re_over$ci.lb), exp(re_init$ci.lb), exp(re_mix$ci.lb)),
+  hi = c(exp(re_over$ci.ub), exp(re_init$ci.ub), exp(re_mix$ci.ub)),
+  source = "Ours (REML)")
+yang <- tibble(Analysis = c("Overall", "Initial"), OR = c(0.93, 0.50),
+  lo = c(0.71, 0.32), hi = c(1.21, 0.77), source = "Yang 2026")
+bind_rows(ours, yang) |> mutate(across(c(OR, lo, hi), ~round(.x, 2))) |> knitr::kable()
+```
+
+The **within-data subgroup (moderator) test finds no timing effect modification**
+(Q~M~(1) = `{r} sprintf("%.2f", re_mod$QM)`, p = `{r} sprintf("%.3f", re_mod$QMp)`): our
+initial and mixed subgroups are nearly identical (OR ≈ 0.70 vs 0.74). This differs from
+Yang et al. 2026, whose protective signal is concentrated in the *initial-therapy* subgroup
+(OR 0.50) against a null overall (0.93).
+
+```{r}
+#| label: timing-forest
+comp <- bind_rows(ours, yang) |> mutate(label = paste0(Analysis, " \u2014 ", source))
+comp$label <- factor(comp$label, levels = rev(comp$label))
+ggplot(comp, aes(OR, label, color = source)) +
+  geom_vline(xintercept = 1, linetype = "dashed", color = "grey50") +
+  geom_pointrange(aes(xmin = lo, xmax = hi), linewidth = 0.6, shape = 18) +
+  scale_x_log10(breaks = c(0.25, 0.5, 0.75, 1, 1.5)) +
+  scale_color_manual(values = c(`Ours (REML)` = jama_blue_grey[["dark"]],
+                                `Yang 2026` = jama_blue_grey[["medium"]])) +
+  labs(x = "Mortality odds ratio (log scale) \u2014 <1 favours combination", y = NULL,
+       title = "Mortality by treatment timing: ours vs Yang et al. 2026") +
+  theme_jama()
+```
+
+Two caveats. The subgroup test has very low power (k = 3 per arm), so a non-significant
+result reflects near-identical point estimates rather than proof of no difference, and our
+"initial" tier contains the confounded Li2024a. A direct significance test of our estimates
+against Yang's is not valid, since the two analyses share roughly nine studies — the
+comparison above is descriptive. The earlier "timing explains the gap" reading held only
+under a different regrouping (dropping the mixed Qi2025 → OR 0.59), not from timing acting as
+an effect modifier within our verified set.

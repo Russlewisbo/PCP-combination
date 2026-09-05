@@ -86,8 +86,12 @@ Verified included set — primary = **Qi2025, Xu2025, Lu2017**; sensitivity adds
   theses: Li2015, Liu2015, Wang2021, Wu2023, Xiang2015, Yu2017, Wang-ZG-2019 SLE) because
   their search included CNKI/Wanfang.
 - Yang overall OR 0.93 (0.71–1.21) is null; their **initial-strategy OR 0.50 (0.32–0.77)**.
-- **Timing explains the gap.** Restricting our set to initial-strategy studies (dropping the
-  mixed Qi2025) gives OR 0.59 (0.32–1.09), consistent with Yang's initial signal.
+- **Timing does NOT act as an effect modifier in our set.** Within-data moderator test:
+  QM(1)≈0.00, p≈0.99; initial 0.70 vs mixed 0.74 (REML) are nearly identical. The earlier
+  "timing explains the gap" note held only under a *different* regrouping (dropping the mixed
+  Qi2025 → OR 0.59, 0.32–1.09) — it reflects which studies are labelled "initial", not timing
+  modifying the effect. Yang's initial-subgroup signal (0.50) is not reproduced as a subgroup
+  difference on our side.
 - Caveats on Yang: frequentist FIXED-effect M-H (narrow CIs); visible extraction errors
   (Fig 4 ORs 21.32 & 19.00; the Qi2025 subgroup mix-up above). Useful comparator, not ground truth.
 - Nuance: Yang plotted Xu2025 as *initial* (Fig 3A) but Table 1 calls it initial+salvage; we
