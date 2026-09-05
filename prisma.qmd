@@ -5,8 +5,11 @@ title: "Study selection (PRISMA-style flow)"
 The **PRISMA 2020 flow diagram** below traces the review from database searching through to
 the studies included in the meta-analysis. Screening was managed in Covidence: 172 records
 were screened at title/abstract and 52 taken forward to full-text review, of which 48 were
-assessed and **21 studies (22 reports)** met inclusion criteria — **8 studies (9 reports)**
-enter the network meta-analysis. The diagram is generated with the
+assessed and **21 studies (22 reports)** met inclusion criteria — **6 studies (6 reports)**
+enter the quantitative (pairwise) meta-analysis of echinocandin + TMP-SMX vs TMP-SMX
+monotherapy. A network meta-analysis was pre-specified "if data permit", but the current
+evidence is a single connected contrast (k = 6) and does not support one, so the synthesis
+is pairwise. The diagram is generated with the
 [PRISMA2020 package](https://github.com/prisma-flowdiagram/PRISMA2020) from a filled copy of
 its CSV template (`analysis/prisma2020_data.csv`).
 

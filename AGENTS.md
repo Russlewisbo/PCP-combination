@@ -41,6 +41,9 @@ No panel gridlines; classic axes; sans font.
 - `analysis/pcp_meta_analysis.R` — reproducible meta-analysis script (data, log-ORs, models, subgroups).
 - `analysis/pcp_primary_meta_dataset.csv` — verified analysis dataset (has `timing` column).
 - `analysis/jama_style.R` — figure theme + palette.
+- `analysis/export_figures.R` — regenerates every site figure as a 300 dpi PNG in `figures/`.
+- `analysis/prisma2020_flow.R` + `analysis/prisma2020_data.csv` — PRISMA2020-package flow diagram.
+- `goodness-of-fit.qmd` — fit/heterogeneity, influence (Baujat), posterior predictive checks.
 - `PCP_combination_extraction_database_v0.2_machine-draft.xlsx` — extraction DB
   (**MACHINE FIRST-PASS, unverified**; needs dual human verification).
 - Source PDFs: `~/main/PCP_combo_thesis/Review_PDFs/`; plain text in
@@ -57,6 +60,9 @@ First data row (`Smith2019`) is an EXAMPLE row — drop it. Key sheets:
 - Primary contrast: adjunctive echinocandin/caspofungin + TMP-SMX vs TMP-SMX monotherapy.
 - Effect measure: odds ratio. Timepoint: 30-day preferred, else in-hospital.
 - Duplicate `Qi2025 == Yanmeng2026` (byte-identical, same PUMCH cohort) → keep Qi2025 only.
+- Synthesis is PAIRWISE (echinocandin+TMP-SMX vs TMP-SMX). NMA pre-specified "if data permit"
+  but NOT supportable (single connected contrast, k=6) → descoped. PRISMA meta-analysis box
+  reconciled to 6 studies / 6 reports.
 
 ## Study inclusion (after SOURCE verification)
 Verified included set — primary = **Qi2025, Xu2025, Lu2017**; sensitivity adds

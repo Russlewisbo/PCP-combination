@@ -1,0 +1,152 @@
+---
+title: "Goodness of fit and model diagnostics"
+---
+
+```{r}
+#| label: setup
+#| message: false
+#| warning: false
+source("analysis/meta_helpers.R")
+ma <- load_ma()
+re <- rma(yi, vi, data = ma, method = "REML")
+bm_sens <- fit_bm(ma)
+```
+
+::: {.callout-note}
+Preliminary, machine-assisted diagnostics pending human review. These check whether the
+random-effects model is an adequate description of the six source-verified studies.
+:::
+
+The [Bayesian](bayesian.qmd) and [frequentist](frequentist.qmd) pages report the pooled
+effect; this page asks a different question — **does the model fit the data?** It pairs
+frequentist influence diagnostics with Bayesian posterior predictive checks.
+
+## Fit and heterogeneity
+
+```{r}
+#| label: fit-summary
+ci  <- confint(re)
+pri <- predict(re, transf = exp)
+tibble(
+  Statistic = c("Pooled OR (RE, REML)", "95% CI", "95% prediction interval",
+                "tau^2", "I^2 (%)", "H^2", "Q (df)", "Q p-value"),
+  Value = c(
+    sprintf("%.2f", exp(re$b[1])),
+    sprintf("%.2f to %.2f", exp(re$ci.lb), exp(re$ci.ub)),
+    sprintf("%.2f to %.2f", pri$pi.lb, pri$pi.ub),
+    sprintf("%.3f (95%% CI %.3f to %.3f)", re$tau2,
+            ci$random["tau^2", "ci.lb"], ci$random["tau^2", "ci.ub"]),
+    sprintf("%.0f (95%% CI %.0f to %.0f)", re$I2,
+            ci$random["I^2(%)", "ci.lb"], ci$random["I^2(%)", "ci.ub"]),
+    sprintf("%.2f", re$H2),
+    sprintf("%.1f (%d)", re$QE, re$k - 1),
+    sprintf("%.3f", re$QEp))
+) |> knitr::kable()
+```
+
+Between-study heterogeneity is moderate (I² ≈ 42%) but imprecise, and Cochran's Q is not
+significant. The **prediction interval** is far wider than the confidence interval — a new
+study's true effect could plausibly fall on either side of no effect.
+
+## Influence and outlier diagnostics
+
+```{r}
+#| label: influence
+inf <- influence(re)
+tibble(
+  Study                 = ma$study,
+  `Weight %`            = round(as.numeric(weights(re)), 1),
+  `Std. residual`       = round(inf$inf$rstudent, 2),
+  hat                   = round(inf$inf$hat, 2),
+  DFFITS                = round(inf$inf$dffits, 2),
+  `Cook's D`            = round(inf$inf$cook.d, 2),
+  `tau^2 (leave-1-out)` = round(inf$inf$tau2.del, 3),
+  Influential           = ifelse(inf$inf$inf == "*", "yes", "")
+) |> knitr::kable()
+```
+
+```{r}
+#| label: baujat
+tmpf <- tempfile(fileext = ".pdf"); grDevices::pdf(tmpf)
+bj <- metafor::baujat(re); grDevices::dev.off(); unlink(tmpf)
+bj$study <- ma$study
+ggplot(bj, aes(x, y)) +
+  geom_point(size = 2.8, color = jama_blue_grey[["steel"]]) +
+  geom_text(aes(label = study), size = 3, hjust = -0.15) +
+  scale_x_continuous(expand = expansion(mult = c(0.05, 0.18))) +
+  labs(x = "Contribution to overall heterogeneity (Q)",
+       y = "Influence on pooled estimate",
+       title = "Baujat plot",
+       subtitle = "Upper-right = studies driving both heterogeneity and the pooled OR") +
+  theme_jama()
+```
+
+**Qi2025** is the single influential study (Cook's D ≈ 1.0, standardised residual ≈ +2.3);
+removing it collapses τ² to zero, so it is essentially the sole source of heterogeneity and
+the main pull toward the null. **Xu2025** is its counterweight, contributing most of the
+apparent benefit. This mirrors the [leave-one-out analysis](sensitivity.qmd).
+
+## Posterior predictive checks
+
+We simulate replicated study results from the fitted Bayesian model and compare them with
+what was observed. If the model is adequate, observed odds ratios should sit comfortably
+within their posterior predictive intervals.
+
+```{r}
+#| label: ppc-table
+set.seed(5127)
+D <- bm_sens$rposterior(n = 10000)   # columns: tau, mu (log-OR scale)
+ppc <- purrr::map_dfr(seq_len(nrow(ma)), function(i) {
+  theta <- rnorm(nrow(D), D[, "mu"], D[, "tau"])
+  yrep  <- rnorm(nrow(D), theta, ma$sei[i])
+  pl <- mean(yrep <= ma$yi[i])
+  tibble(Study = ma$study[i],
+         `Observed OR`   = exp(ma$yi[i]),
+         `PP 2.5%`       = exp(unname(quantile(yrep, .025))),
+         `PP median`     = exp(unname(quantile(yrep, .5))),
+         `PP 97.5%`      = exp(unname(quantile(yrep, .975))),
+         `PPP (2-sided)` = 2 * min(pl, 1 - pl))
+})
+
+# Omnibus check on Cochran's Q (does the modelled heterogeneity match the data?)
+w <- 1 / ma$vi
+Qobs <- sum(w * (ma$yi - sum(w * ma$yi) / sum(w))^2)
+Qrep <- vapply(seq_len(nrow(D)), function(j) {
+  theta <- rnorm(nrow(ma), D[j, "mu"], D[j, "tau"]); yr <- rnorm(nrow(ma), theta, ma$sei)
+  mfe <- sum(w * yr) / sum(w); sum(w * (yr - mfe)^2)
+}, numeric(1))
+q_ppp <- mean(Qrep >= Qobs)
+
+ppc |> mutate(across(where(is.numeric), ~round(.x, 2))) |> knitr::kable()
+```
+
+All six observed odds ratios fall within their 95% posterior predictive intervals, and no
+two-sided predictive p-value is extreme. The omnibus check on Cochran's Q gives a posterior
+predictive p-value of `{r} sprintf("%.2f", q_ppp)`, so the heterogeneity the model expects
+is consistent with the data.
+
+```{r}
+#| label: ppc-plot
+ppc |>
+  mutate(Study = factor(Study, levels = rev(ma$study))) |>
+  ggplot(aes(y = Study)) +
+  geom_vline(xintercept = 1, linetype = "dashed", color = "grey50") +
+  geom_linerange(aes(xmin = `PP 2.5%`, xmax = `PP 97.5%`),
+                 color = jama_blue_grey[["light"]], linewidth = 3, alpha = 0.8) +
+  geom_point(aes(x = `PP median`), shape = 124, size = 4, color = jama_blue_grey[["steel"]]) +
+  geom_point(aes(x = `Observed OR`), shape = 21, fill = "white",
+             color = jama_blue_grey[["accent"]], size = 2.8) +
+  scale_x_log10(breaks = c(0.1, 0.25, 0.5, 1, 2, 4, 8)) +
+  labs(x = "Odds ratio (log scale)", y = NULL,
+       title = "Posterior predictive check",
+       subtitle = "Bars = 95% posterior predictive interval; white points = observed ORs") +
+  theme_jama()
+```
+
+## Summary
+
+The random-effects model is an **adequate fit**: no individual study is poorly predicted and
+the modelled heterogeneity matches the data. The caveat is not misspecification but
+**fragility** — two influential studies (Qi2025 and Xu2025) pulling in opposite directions
+account for most of the heterogeneity and the location of the pooled estimate. With only six
+small observational studies, the synthesis remains inconclusive.

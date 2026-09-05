@@ -35,8 +35,9 @@ An OR below 1 favours combination therapy.
 - **[PRISMA flow](prisma.qmd)** — study selection for this contrast.
 - **[Frequentist results](frequentist.qmd)** — REML and Mantel-Haenszel pooling, heterogeneity, funnel plot.
 - **[Bayesian results](bayesian.qmd)** — posterior forest plot and marginal posteriors.
-- **[Model fit & MCMC](model-fit.qmd)** — JAGS refit with convergence diagnostics (R̂, ESS, trace plots).
+- **[Model fit & MCMC](model-fit.qmd)** — independent random-walk Metropolis refit with convergence diagnostics (R̂, ESS, trace plots).
 - **[Sensitivity](sensitivity.qmd)** — leave-one-out, prior sensitivity, timing subgroups.
+- **[Goodness of fit](goodness-of-fit.qmd)** — fit and influence diagnostics, posterior predictive checks.
 - **[Risk of bias](risk-of-bias.qmd)** — preliminary ROBINS-I assessment.
 - **[Conclusions](conclusions.qmd)** — summary and implications.
 

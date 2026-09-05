@@ -10,6 +10,7 @@ project:
     - bayesian.qmd
     - model-fit.qmd
     - sensitivity.qmd
+    - goodness-of-fit.qmd
     - risk-of-bias.qmd
     - conclusions.qmd
     - pcp_echinocandin_meta_writeup.qmd
@@ -41,6 +42,8 @@ website:
             text: Model fit & MCMC
           - href: sensitivity.qmd
             text: Sensitivity analyses
+          - href: goodness-of-fit.qmd
+            text: Goodness of fit
       - href: conclusions.qmd
         text: Conclusions
       - href: pcp_echinocandin_meta_writeup.qmd

@@ -38,7 +38,7 @@ sensitivity-analysis pooled odds ratio is `{r} fmt(bm_sens)` (posterior probabil
 benefit `{r} sprintf("%.0f%%", 100 * bm_sens$pposterior(mu = 0))`), and the primary
 analysis is `{r} fmt(bm_primary)`. The [frequentist](frequentist.qmd) random-effects
 estimate (OR 0.75, 95% CI 0.42–1.36) agrees closely, as does an independent
-[JAGS MCMC refit](model-fit.qmd).
+[random-walk Metropolis refit](model-fit.qmd).
 
 ## Beyond mortality
 
@@ -71,6 +71,57 @@ interval still includes no effect. See the
   retrieved — mostly Chinese-language papers and theses (CNKI/Wanfang); one (Wang-ZG-2019)
   was obtained and found ineligible (single-arm). Their absence limits power and may
   introduce language/selection bias.
+
+## Model adequacy and influence
+
+The random-effects model is an adequate description of the six studies: every observed odds
+ratio falls within its posterior predictive interval, and the modelled heterogeneity matches
+the data (omnibus Cochran's Q posterior predictive *p* = 0.40). The residual fragility comes
+from two influential studies pulling in opposite directions rather than from a poorly fitting
+model. Full diagnostics are on the [goodness-of-fit](goodness-of-fit.qmd) page.
+
+![Baujat plot — Qi2025 drives both the heterogeneity and the pooled estimate; Xu2025 is its counterweight.](figures/gof_baujat.png){width=75%}
+
+![Posterior predictive check — observed odds ratios (open points) all fall within their 95% posterior predictive intervals (bars).](figures/gof_ppc.png){width=75%}
+
+## Certainty of evidence (GRADE)
+
+Applying GRADE to the primary outcome, all-cause mortality. As a body of **non-randomised**
+evidence, certainty starts at *low* and is then rated across the five domains below.
+
+```{r}
+#| label: grade-sof
+p_ctrl <- sum(ma$e_ref) / sum(ma$n_ref)
+orv <- or_ci(bm_sens)
+risk_from_or <- function(p, or) { o <- p / (1 - p) * or; o / (1 + o) }
+tibble::tibble(
+  Field = c("Outcome", "Participants (studies)", "Relative effect (OR)",
+            "Assumed risk, monotherapy", "Corresponding risk, combination (95% CrI)",
+            "Certainty"),
+  Value = c(
+    "All-cause mortality (in-hospital / ~30-day)",
+    sprintf("%d (6 observational studies)", sum(ma$n_comb + ma$n_ref)),
+    fmt(bm_sens),
+    sprintf("%.0f per 1000", p_ctrl * 1000),
+    sprintf("%.0f per 1000 (%.0f to %.0f)",
+            risk_from_or(p_ctrl, orv[1]) * 1000,
+            risk_from_or(p_ctrl, orv[2]) * 1000,
+            risk_from_or(p_ctrl, orv[3]) * 1000),
+    "\u2295\u25cb\u25cb\u25cb Very low")
+) |> knitr::kable()
+```
+
+| GRADE domain | Judgment | Rationale |
+|---|---|---|
+| Risk of bias | Serious (−1) | All studies non-randomised; confounding by indication; Li2024a critical (bundled co-interventions). |
+| Inconsistency | Not serious | Credible intervals overlap and the direction is largely consistent; moderate I² (42%) is attributable to one influential study. |
+| Indirectness | Not serious | Population, intervention, comparator and outcome match the review question directly. |
+| Imprecision | Serious (−1) | Pooled CrI (0.43–1.37) spans meaningful benefit and harm; only 473 participants; wide prediction interval. |
+| Publication bias | Suspected | Seven eligible studies (mostly Chinese-language) could not be retrieved; too few studies to test formally. |
+
+**Overall certainty: very low (⊕◯◯◯).** We are very uncertain whether adjunctive echinocandin
+reduces all-cause mortality in HIV-negative PCP. This rating is preliminary and should be
+finalised after dual ROBINS-I assessment.
 
 ## Relation to the wider literature
 
