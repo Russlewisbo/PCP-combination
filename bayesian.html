@@ -222,6 +222,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#secondary-outcome-clinical-response" id="toc-secondary-outcome-clinical-response" class="nav-link" data-scroll-target="#secondary-outcome-clinical-response">Secondary outcome: clinical response</a>
   <ul class="collapse">
   <li><a href="#heterogeneity-and-leave-one-out" id="toc-heterogeneity-and-leave-one-out" class="nav-link" data-scroll-target="#heterogeneity-and-leave-one-out">Heterogeneity and leave-one-out</a></li>
+  <li><a href="#continuity-correction-sensitivity-li2024a" id="toc-continuity-correction-sensitivity-li2024a" class="nav-link" data-scroll-target="#continuity-correction-sensitivity-li2024a">Continuity-correction sensitivity (Li2024a)</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -663,6 +664,50 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <p>Among the two unconfounded studies there is <strong>no detectable heterogeneity</strong> (I² = 0); the modest heterogeneity in the k = 3 set comes entirely from Li2024a, whose near-separation 20/20 response inflates both its odds ratio and the between-study variance. Leave-one-out confirms the fragility — the pooled interval excludes 1 only when Jin2019 is dropped (leaving Qi2023 with the Li2024a outlier), whereas removing the confounded Li2024a returns the stable clean estimate. The response signal favours combination directionally but stays inconclusive.</p>
+</section>
+<section id="continuity-correction-sensitivity-li2024a" class="level3">
+<h3 class="anchored" data-anchor-id="continuity-correction-sensitivity-li2024a">Continuity-correction sensitivity (Li2024a)</h3>
+<div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>li_or <span class="ot">&lt;-</span> <span class="cf">function</span>(a) <span class="fu">exp</span>(<span class="fu">escalc</span>(<span class="at">measure =</span> <span class="st">"OR"</span>, <span class="at">ai =</span> <span class="dv">20</span>, <span class="at">n1i =</span> <span class="dv">20</span>, <span class="at">ci =</span> <span class="dv">12</span>, <span class="at">n2i =</span> <span class="dv">18</span>,</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>                                <span class="at">add =</span> a, <span class="at">to =</span> <span class="st">"only0"</span>)<span class="sc">$</span>yi)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Continuity correction</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"add = 0 (none)"</span>, <span class="st">"add = 0.5 (default)"</span>),</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Li2024a response OR</span><span class="st">`</span>   <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"undefined (\u221e; 0 failures)"</span>, <span class="fu">sprintf</span>(<span class="st">"%.1f"</span>, <span class="fu">li_or</span>(<span class="fl">0.5</span>))),</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">k = 3 pooled OR</span><span class="st">`</span>       <span class="ot">=</span> <span class="fu">c</span>(<span class="fu">paste0</span>(<span class="fu">fmt</span>(bm_resp_clean), <span class="st">" (Li2024a excluded)"</span>), <span class="fu">fmt</span>(bm_resp_all))</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span> knitr<span class="sc">::</span><span class="fu">kable</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 23%">
+<col style="width: 28%">
+<col style="width: 47%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Continuity correction</th>
+<th style="text-align: left;">Li2024a response OR</th>
+<th style="text-align: left;">k = 3 pooled OR</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">add = 0 (none)</td>
+<td style="text-align: left;">undefined (∞; 0 failures)</td>
+<td style="text-align: left;">1.87 (95% CrI 0.78–4.46) (Li2024a excluded)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">add = 0.5 (default)</td>
+<td style="text-align: left;">21.3</td>
+<td style="text-align: left;">2.19 (95% CrI 0.95–5.24)</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>Li2024a’s combination arm has zero treatment failures (20/20), so its odds ratio is <strong>undefined without a continuity correction</strong>. Under the conventional add-0.5 correction it becomes ≈ 21 with an enormous interval, which pulls the k = 3 pooled OR up to 2.19; drop the correction (add = 0) and the study cannot enter an odds-ratio synthesis at all, leaving the clean k = 2 estimate of 1.87. The apparent response benefit contributed by Li2024a is thus an artefact of the continuity correction, reinforcing the clean two-study estimate as the trustworthy summary.</p>
 <p>Need for <strong>mechanical ventilation</strong> is reported by several studies, but source verification found the figures are recorded inconsistently — largely as baseline or course-of-illness severity (need for ventilation at some point during the ICU stay) rather than a clearly-timed post-treatment event, and none of the studies time ventilation relative to treatment start. It is therefore <strong>not pooled</strong> here.</p>
 
 
