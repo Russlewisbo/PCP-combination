@@ -24,7 +24,8 @@
       "/Users/russelllewis/main/PCP_combo_thesis/scratch/pdf_text/*": "allow"
     },
     "webfetch": {
-      "https://journals.lww.com/*": "allow"
+      "https://journals.lww.com/*": "allow",
+      "https://russlewisbo.github.io/*": "allow"
     },
     "edit": {
       "*.css": "allow",
