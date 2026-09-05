@@ -241,6 +241,27 @@ confirms the fragility — the pooled interval excludes 1 only when Jin2019 is d
 Qi2023 with the Li2024a outlier), whereas removing the confounded Li2024a returns the stable
 clean estimate. The response signal favours combination directionally but stays inconclusive.
 
+### Continuity-correction sensitivity (Li2024a)
+
+```{r}
+#| label: response-continuity
+li_or <- function(a) exp(escalc(measure = "OR", ai = 20, n1i = 20, ci = 12, n2i = 18,
+                                add = a, to = "only0")$yi)
+tibble(
+  `Continuity correction` = c("add = 0 (none)", "add = 0.5 (default)"),
+  `Li2024a response OR`   = c("undefined (\u221e; 0 failures)", sprintf("%.1f", li_or(0.5))),
+  `k = 3 pooled OR`       = c(paste0(fmt(bm_resp_clean), " (Li2024a excluded)"), fmt(bm_resp_all))
+) |> knitr::kable()
+```
+
+Li2024a's combination arm has zero treatment failures (20/20), so its odds ratio is
+**undefined without a continuity correction**. Under the conventional add-0.5 correction it
+becomes ≈ 21 with an enormous interval, which pulls the k = 3 pooled OR up to 2.19; drop the
+correction (add = 0) and the study cannot enter an odds-ratio synthesis at all, leaving the
+clean k = 2 estimate of 1.87. The apparent response benefit contributed by Li2024a is thus an
+artefact of the continuity correction, reinforcing the clean two-study estimate as the
+trustworthy summary.
+
 Need for **mechanical ventilation** is reported by several studies, but source
 verification found the figures are recorded inconsistently — largely as baseline or
 course-of-illness severity (need for ventilation at some point during the ICU stay) rather

@@ -254,6 +254,30 @@ p_ppc <- ppc |>
   theme_jama()
 save_fig(p_ppc, "gof_ppc.png", 8, 5)
 
+## ---- Timing comparison vs Yang 2026 (sensitivity.qmd) ----
+re_over <- rma(yi, vi, data = ma, method = "REML")
+re_init <- rma(yi, vi, data = dplyr::filter(ma, timing == "initial"), method = "REML")
+re_mix  <- rma(yi, vi, data = dplyr::filter(ma, timing == "mixed"),   method = "REML")
+ours <- tibble(Analysis = c("Overall (k=6)", "Initial (k=3)", "Mixed (k=3)"),
+  OR = c(exp(re_over$b), exp(re_init$b), exp(re_mix$b)),
+  lo = c(exp(re_over$ci.lb), exp(re_init$ci.lb), exp(re_mix$ci.lb)),
+  hi = c(exp(re_over$ci.ub), exp(re_init$ci.ub), exp(re_mix$ci.ub)),
+  source = "Ours (REML)")
+yang <- tibble(Analysis = c("Overall", "Initial"), OR = c(0.93, 0.50),
+  lo = c(0.71, 0.32), hi = c(1.21, 0.77), source = "Yang 2026")
+comp <- bind_rows(ours, yang) |> mutate(label = paste0(Analysis, " \u2014 ", source))
+comp$label <- factor(comp$label, levels = rev(comp$label))
+p_timing <- ggplot(comp, aes(OR, label, color = source)) +
+  geom_vline(xintercept = 1, linetype = "dashed", color = "grey50") +
+  geom_pointrange(aes(xmin = lo, xmax = hi), linewidth = 0.6, shape = 18) +
+  scale_x_log10(breaks = c(0.25, 0.5, 0.75, 1, 1.5)) +
+  scale_color_manual(values = c(`Ours (REML)` = jama_blue_grey[["dark"]],
+                                `Yang 2026` = jama_blue_grey[["medium"]])) +
+  labs(x = "Mortality odds ratio (log scale) \u2014 <1 favours combination", y = NULL,
+       title = "Mortality by treatment timing: ours vs Yang et al. 2026") +
+  theme_jama()
+save_fig(p_timing, "sensitivity_timing_yang.png", 8, 4.5)
+
 message("Exported: freq_forest, freq_funnel, bayes_posterior_forest, bayes_posterior_mu, ",
         "bayes_posterior_tau, bayes_response_forest, sensitivity_loo, rob_trafficlight, ",
-        "mcmc_trace, mcmc_density, gof_baujat, gof_ppc (300 dpi) to figures/")
+        "mcmc_trace, mcmc_density, gof_baujat, gof_ppc, sensitivity_timing_yang (300 dpi) to figures/")

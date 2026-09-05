@@ -124,17 +124,21 @@ finalised after dual ROBINS-I assessment.
 
 ## Relation to the wider literature
 
-Our result is consistent with Yang et al. (2026): their overall estimate is also null
+Our result partly overlaps with Yang et al. (2026): their overall estimate is also null
 (OR 0.93), and their protective signal is confined to the *initial-therapy* subgroup
-(OR 0.50). Matching on treatment timing brings the two analyses into agreement. Note that
-Yang's extraction contains errors we identified during verification (their Qi2025 numbers
-are from the ventilated subgroup; their "Wang 2019" treats a single-arm case series as a
-two-arm comparison), so it is a useful comparator rather than a ground truth.
+(OR 0.50). Crucially, **we could not reproduce timing as an effect modifier**: within our six
+studies the initial and mixed subgroups are nearly identical (OR ≈ 0.70 vs 0.74) and a formal
+moderator test is null (Q~M~(1) = 0.00, p = 0.99; see
+[sensitivity](sensitivity.qmd#formal-timing-test-and-comparison-with-yang-et-al-2026)). The
+apparent timing alignment reflects which studies are labelled "initial" rather than a genuine
+subgroup effect, and a direct significance test between the analyses is precluded by the ~9
+studies they share. Yang's extraction also contains errors we identified during verification
+(their Qi2025 numbers are from the ventilated subgroup; their "Wang 2019" treats a single-arm
+case series as a two-arm comparison), so it is a useful comparator rather than a ground truth.
 
 ## Bottom line
 
-Adjunctive echinocandin **may** reduce mortality in HIV-negative PCP, most plausibly when
-started early, but the current evidence is too small, too observational, and too
-incomplete to be conclusive. Priorities before drawing a firm conclusion: complete dual
+Adjunctive echinocandin **may** reduce mortality in HIV-negative PCP, but the current
+evidence is too small, too observational, and too incomplete to be conclusive. Priorities before drawing a firm conclusion: complete dual
 human verification and formal ROBINS-I assessment, retrieve the missing Chinese-language
 studies, and — ultimately — randomized evidence.
