@@ -48,7 +48,7 @@ pooled effect μ.
 ```{r}
 #| label: posterior-forest
 set.seed(7183)
-ps <- bm_sens$rposterior(n = 6000)   # columns: tau, mu (log-OR scale)
+ps <- bm_sens$rposterior(n = 4000)   # columns: tau, mu (log-OR scale)
 
 # Conditional posterior of each study's true effect given (mu, tau, y_i, sei_i)
 theta_draws <- purrr::map_dfr(seq_len(nrow(ma)), function(i) {
