@@ -1,0 +1,14 @@
+id,role,n,label,extra,provisional
+identified,main,172,Records identified from databases,,TRUE
+duplicates,side,0,Duplicate records removed before screening,,TRUE
+screened,main,172,Records screened (title/abstract),,FALSE
+excluded_screen,side,120,Records excluded,,FALSE
+sought,main,52,Reports selected for full-text screening,,FALSE
+not_retrieved,side,4,Reports not retrieved / assessed,,TRUE
+assessed,main,48,Reports assessed for eligibility,,FALSE
+excluded_ft,side,26,Reports excluded,,FALSE
+included,main,21,Studies included in review,22 reports,FALSE
+nma,main,8,Studies in network meta-analysis,9 reports,FALSE
+reason1,reason,11,No eligible antifungal-regimen contrast,,FALSE
+reason2,reason,8,Descriptive or prognostic-factor study,,FALSE
+reason3,reason,7,Single-arm case series or case report,,FALSE

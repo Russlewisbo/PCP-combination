@@ -33,28 +33,41 @@ or_ci <- function(bm) c(exp(bm$summary["median", "mu"]),
 
 fmt <- function(bm) { v <- or_ci(bm); sprintf("%.2f (95%% CrI %.2f\u2013%.2f)", v[1], v[2], v[3]) }
 
-# --- JAGS: the same normal-normal model, fitted by MCMC for convergence checks ---
-jags_model_text <- "model{
-  for (i in 1:k) {
-    y[i]     ~ dnorm(theta[i], prec[i])   # prec[i] = 1 / sei^2 (within-study)
-    theta[i] ~ dnorm(mu, inv_tau2)         # study effect
+# --- MCMC: the same normal-normal model, refit by a self-contained random-walk
+# Metropolis sampler in base R (no JAGS/Stan dependency) for convergence checks.
+# Samples (mu, log-tau) from the marginal posterior with study effects integrated
+# out, using a Haario-style adaptive proposal covariance during burn-in.
+fit_mcmc <- function(d, n.chains = 4, n.burn = 3000, n.iter = 10000, seed = 7314) {
+  y <- d$yi; s2 <- d$sei^2
+  lpost <- function(mu, eta) {
+    tau <- exp(eta); v <- s2 + tau^2
+    sum(dnorm(y, mu, sqrt(v), log = TRUE)) +
+      dnorm(mu, 0, 1.5, log = TRUE) +                    # N(0, 1.5) on log-OR
+      (log(2) + dnorm(tau, 0, 0.5, log = TRUE)) + eta    # half-normal(0.5) + Jacobian
   }
-  mu  ~ dnorm(0, 0.4444444)                # N(0, 1.5) on log-OR  (precision 1/1.5^2)
-  tau ~ dnorm(0, 4) T(0, )                 # half-normal(0.5) on tau
-  inv_tau2 <- 1 / (tau * tau)
-  OR <- exp(mu)
-}"
-
-fit_jags <- function(d, monitor = c("mu", "tau", "OR", "theta"),
-                     n.chains = 4, n.adapt = 1000, n.burn = 2000,
-                     n.iter = 10000, seed = 4242) {
-  library(rjags); library(coda)
   set.seed(seed)
-  jm <- jags.model(textConnection(jags_model_text),
-                   data = list(y = d$yi, prec = 1 / d$sei^2, k = nrow(d)),
-                   n.chains = n.chains, n.adapt = n.adapt, quiet = TRUE)
-  update(jm, n.burn, progress.bar = "none")
-  coda.samples(jm, monitor, n.iter = n.iter, progress.bar = "none")
+  inits <- list(c(0.6, log(0.6)), c(-0.6, log(0.1)),
+                c(0.3, log(0.3)), c(-0.3, log(0.2)))
+  run_chain <- function(init) {
+    x <- init; lp <- lpost(x[1], x[2])
+    S <- diag(c(0.1, 0.1)); mean_x <- x; cov_x <- diag(0, 2); n_ad <- 0
+    keep <- matrix(NA_real_, n.iter, 2)
+    for (t in seq_len(n.burn + n.iter)) {
+      prop <- x + as.numeric(chol(S) %*% rnorm(2))
+      lp_p <- lpost(prop[1], prop[2])
+      if (log(runif(1)) < lp_p - lp) { x <- prop; lp <- lp_p }
+      if (t <= n.burn) {                                 # adapt proposal during burn-in
+        n_ad <- n_ad + 1; d_x <- x - mean_x; mean_x <- mean_x + d_x / n_ad
+        cov_x <- cov_x + (d_x %o% (x - mean_x))
+        if (n_ad > 50) S <- (2.38^2 / 2) * (cov_x / (n_ad - 1)) + diag(1e-6, 2)
+      } else keep[t - n.burn, ] <- x
+    }
+    keep
+  }
+  coda::mcmc.list(lapply(inits[seq_len(n.chains)], function(init) {
+    draws <- run_chain(init)
+    coda::mcmc(cbind(mu = draws[, 1], tau = exp(draws[, 2]), OR = exp(draws[, 1])))
+  }))
 }
 
 # Four-colour blue-grey ramp for MCMC chains.

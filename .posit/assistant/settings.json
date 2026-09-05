@@ -31,7 +31,9 @@
       "*.html": "allow",
       "*.yml": "allow",
       "*/.gitignore": "allow",
-      "*.qmd": "allow"
+      "*.qmd": "allow",
+      "*.csv": "allow",
+      "*.R": "allow"
     }
   }
 }

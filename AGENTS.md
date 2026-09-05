@@ -30,7 +30,10 @@ No panel gridlines; classic axes; sans font.
 
 ## Environment / gotchas
 - **Stan is broken on this machine** (rstan TBB linker error; no cmdstanr). Fit Bayesian
-  models with **`bayesmeta`** (semi-analytic, no MCMC). `rjags` is available as a fallback.
+  models with **`bayesmeta`** (semi-analytic, no MCMC). **`rjags` / JAGS are NOT installed**
+  (no `jags` binary; `runjags` also absent) — do not rely on them. The Model-fit / MCMC page
+  now gets genuine sampler diagnostics from a **self-contained base-R random-walk Metropolis
+  sampler** (`fit_mcmc()` in `analysis/meta_helpers.R`), which cross-checks `bayesmeta`.
 - Priors used throughout: `mu ~ N(0, 1.5)` on log-OR; `tau ~ half-normal(0.5)`.
 - Helper `fit_bm()` wraps `bayesmeta()` with these priors (defined in the analysis script).
 
