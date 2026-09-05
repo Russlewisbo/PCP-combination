@@ -2,11 +2,35 @@
 title: "Study selection (PRISMA-style flow)"
 ---
 
-The diagram below shows the **analytic selection flow for the echinocandin contrast**,
-starting from the project's full-text extraction corpus. It is not the flow for the full
-systematic review: formal database screening in Covidence is ongoing, and the complete
-PRISMA 2020 diagram (with identification and screening counts across PubMed, Embase and
-Scopus) will be produced when screening is finalised.
+The **PRISMA 2020 flow diagram** below traces the review from database searching through to
+the studies included in the meta-analysis. Screening was managed in Covidence: 172 records
+were screened at title/abstract and 52 taken forward to full-text review, of which 48 were
+assessed and **21 studies (22 reports)** met inclusion criteria — **8 studies (9 reports)**
+enter the network meta-analysis. The diagram is generated with the
+[PRISMA2020 package](https://github.com/prisma-flowdiagram/PRISMA2020) from a filled copy of
+its CSV template (`analysis/prisma2020_data.csv`).
+
+```{r}
+#| label: prisma2020
+#| message: false
+#| warning: false
+library(PRISMA2020)
+d <- read.csv("analysis/prisma2020_data.csv", stringsAsFactors = FALSE)
+PRISMA_flowdiagram(PRISMA_data(d), previous = FALSE, other = FALSE,
+                   meta_analysis = TRUE, fontsize = 10)
+```
+
+::: {.callout-note}
+Upstream counts come from the Covidence export. The duplicate-removal count is shown as 0
+pending confirmation, and the 52 → 48 step (reports not retrieved, n = 4) is provisional.
+:::
+
+## Analytic selection flow (echinocandin contrast)
+
+The review-level diagram above covers all 21 included studies. The narrower flow below shows
+the **analytic selection for the echinocandin-versus-monotherapy mortality comparison**
+specifically — the 6 studies (3 primary + 3 sensitivity) used in this site's pairwise
+synthesis.
 
 ```{mermaid}
 flowchart TD
