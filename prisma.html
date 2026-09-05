@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.9.35">
+<meta name="generator" content="quarto-1.10.18">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -12,16 +12,54 @@
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
 */
-code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
-div.columns{display: flex; gap: min(4vw, 1.5em);}
-div.column{flex: auto; overflow-x: auto;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
 div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 ul.task-list{list-style: none;}
 ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -39,10 +77,10 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-46f66b053e56abd73bb6e954d61a315b.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-158031087360bce0ff56dc785ce39e06.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-6ac2aec46ad7f46b16024ee4409aa65c.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -83,6 +121,11 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-diagram/mermaid.min.js"></script>
 <script src="site_libs/quarto-diagram/mermaid-init.js"></script>
 <link href="site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
+<link href="site_libs/htmltools-fill-0.5.9/fill.css" rel="stylesheet">
+<script src="site_libs/htmlwidgets-1.6.4/htmlwidgets.js"></script>
+<script src="site_libs/viz-1.8.2/viz.js"></script>
+<link href="site_libs/DiagrammeR-styles-0.2/styles.css" rel="stylesheet">
+<script src="site_libs/grViz-binding-1.0.12/grViz.js"></script>
 
 
 <link rel="stylesheet" href="styles.css">
@@ -149,6 +192,10 @@ ul.task-list li input[type="checkbox"] {
     <a class="dropdown-item" href="./sensitivity.html">
  <span class="dropdown-text">Sensitivity analyses</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="./goodness-of-fit.html">
+ <span class="dropdown-text">Goodness of fit</span></a>
+  </li>  
     </ul>
   </li>
   <li class="nav-item">
@@ -171,8 +218,14 @@ ul.task-list li input[type="checkbox"] {
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#analytic-selection-flow-echinocandin-contrast" id="toc-analytic-selection-flow-echinocandin-contrast" class="nav-link active" data-scroll-target="#analytic-selection-flow-echinocandin-contrast">Analytic selection flow (echinocandin contrast)</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -196,7 +249,54 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p>The diagram below shows the <strong>analytic selection flow for the echinocandin contrast</strong>, starting from the project’s full-text extraction corpus. It is not the flow for the full systematic review: formal database screening in Covidence is ongoing, and the complete PRISMA 2020 diagram (with identification and screening counts across PubMed, Embase and Scopus) will be produced when screening is finalised.</p>
+<p>The <strong>PRISMA 2020 flow diagram</strong> below traces the review from database searching through to the studies included in the meta-analysis. Screening was managed in Covidence: 172 records were screened at title/abstract and 52 taken forward to full-text review, of which 48 were assessed and <strong>21 studies (22 reports)</strong> met inclusion criteria — <strong>6 studies (6 reports)</strong> enter the quantitative (pairwise) meta-analysis of echinocandin + TMP-SMX vs TMP-SMX monotherapy. A network meta-analysis was pre-specified “if data permit”, but the current evidence is a single connected contrast (k = 6) and does not support one, so the synthesis is pairwise. The diagram is generated with the <a href="https://github.com/prisma-flowdiagram/PRISMA2020">PRISMA2020 package</a> from a filled copy of its CSV template (<code>analysis/prisma2020_data.csv</code>).</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(PRISMA2020)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"analysis/prisma2020_data.csv"</span>, <span class="at">stringsAsFactors =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">PRISMA_flowdiagram</span>(<span class="fu">PRISMA_data</span>(d), <span class="at">previous =</span> <span class="cn">FALSE</span>, <span class="at">other =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>                   <span class="at">meta_analysis =</span> <span class="cn">TRUE</span>, <span class="at">fontsize =</span> <span class="dv">10</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div class="grViz html-widget html-fill-item" id="htmlwidget-4d4596916db57c328fc7" style="width:100%;height:464px;"></div>
+<script>
+HTMLWidgets.addPostRenderHandler(function() {
+
+       const nodeMap = new Map([["node1","Identification"], ["node2","Screening"], ["node3","Included"]]);
+       for (const [node, label] of nodeMap) {
+         var theDiv = document.getElementById(node);
+         var theText = theDiv.querySelector("text");
+         var attrX = theText.getAttribute("x");
+         var attrY = theText.getAttribute("y");
+         theText.setAttribute("y",parseFloat(attrX))
+         theText.setAttribute("x",parseFloat(attrY)*-1)
+         theText.setAttribute("style","transform: rotate(-90deg);")
+         theText.setAttribute("dominant-baseline", "middle")
+         theText.innerHTML = label;
+       }
+    
+});
+</script>
+<script type="application/json" data-for="htmlwidget-4d4596916db57c328fc7">{"x":{"diagram":"digraph TD {\n        graph[\n          splines = ortho,\n          layout = neato,\n          tooltip = \"Click the boxes for further information\",\n          outputorder = edgesfirst,\n        ]node [\n        shape = box,\n        fontsize = 10,\n        fontname = Helvetica,\n        color = Goldenrod1\n      ]\n      identification [\n        color = LightSteelBlue2,\n        label = \" \",\n        style = \"filled,rounded\",\n        pos = \"0,7.875!\",\n        width = 0.4,\n        height = 1.75,\n        tooltip = \"Blue identification box\"\n      ];\n      screening [\n        color = LightSteelBlue2,\n        label = \" \",\n        style = \"filled,rounded\",\n        pos = \"0,4.375!\",\n        width = 0.4,\n        height = 3.75,\n        tooltip = \"Blue screening box\"\n      ];\n      included [\n        color = LightSteelBlue2,\n        label = \" \",\n        style = \"filled,rounded\",\n        pos = \"0,0.25!\",\n        width = 0.4,\n        height = 3.5,\n        tooltip = \"Blue included box\"\n      ];\nnode [\n        shape = box,\n        fontsize = 10,\n        fontname = Helvetica,\n        color = Goldenrod1]\n        3 [\n          label = \"Identification of new studies via databases and registers\",\n          style = \"rounded,filled\",\n          width = 7.5,\n          height = 0.4,\n          pos = \"4.25,9.2!\",\n      tooltip = \"Yellow title box; Identification of new studies via databases and registers\"\n      ]\n        node [\n          shape = box,\n          fontname = Helvetica,\n          color = Black]\n        4 [\n          label = \"Records identified from:\nDatabases (n = 172)\nRegisters (n = 0)\",\n          width = 3.5,\n          height = 0.75,\n          pos = \"2.25,7.875!\",\n          tooltip = \"Records identified from: Databases and Registers\"\n        ]\n        node [\n          shape = box,\n          fontname = Helvetica,\n          color = Black]\n        5 [\n          label = \"Records removed before screening:\nDuplicate records (n = 0)\nRecords marked as ineligible by automation\ntools (n = 0)\nRecords removed for other reasons (n = 0)\",\n          width = 3.5,\n          height = 0.5,\n          pos = \"6.25,7.875!\",\n          tooltip = \"Duplicate records\"\n        ]\n        node [\n          shape = box,\n          fontname = Helvetica,\n          color = Black\n        ]\n        6 [\n          label = \"Records screened\n(n = 172)\",\n          width = 3.5,\n          height = 0.5,\n          pos = \"2.25,6!\",\n          tooltip = \"Records screened (databases and registers)\"\n        ]\n        node [\n          shape = box,\n          fontname = Helvetica,\n          color = Black\n        ]\n        7 [\n          label = \"Records excluded\n(n = 120)\",\n          width = 3.5,\n          height = 0.5,\n          pos = \"6.25,6!\",\n          tooltip = \"Records excluded (databases and registers)\"\n        ]\n        node [\n          shape = box,\n          fontname = Helvetica,\n          color = Black]\n      8 [\n        label = \"Reports sought for retrieval\n(n = 52)\",\n        width = 3.5,\n        height = 0.5,\n        pos = \"2.25,5!\",\n        tooltip = \"Reports sought for retrieval (databases and registers)\"\n      ]\n      node [\n        shape = box,\n        fontname = Helvetica,\n        color = Black]\n      9 [\n        label = \"Reports not retrieved\n(n = 4)\",\n        width = 3.5,\n        height = 0.5,\n        pos = \"6.25,5!\",\n        tooltip = \"Reports not retrieved (databases and registers)\"\n      ]\n      node [\n        shape = box,\n        fontname = Helvetica,\n        color = Black]\n        10 [\n          label = \"Reports assessed for eligibility\n(n = 48)\",\n          width = 3.5,\n          height = 0.5,\n          pos = \"2.25,3.375!\",\n          tooltip = \"Reports assessed for eligibility (databases and registers)\"\n        ]\n        node [\n          shape = box,\n          fontname = Helvetica,\n          color = Black,\n          fillcolor = White,\n          style = filled\n        ]\n        11 [\n          label = \"Reports excluded:\nNo eligible antifungal-regimen\ncontrast (n = 11)\nDescriptive or prognostic-factor\nstudy (n = 8)\nSingle-arm case series or case\nreport (n = 7)\",\n          width = 3.5,\n          height = 0.5,\n          pos = \"6.25,3.375!\",\n      tooltip = \"Reports excluded (databases and registers)\"\n      ]\n      node [\n        shape = box,\n        fontname = Helvetica,\n        color = Black,\n      fillcolor = \"\",\n      style = solid\n      ]\n      12 [\n        label = \"New studies included in review\n(n = 21)\nReports of new included studies\n(n = 22)\",\n        width = 3.5,\n        height = 1,\n        pos = \"2.25,1!\",\n        tooltip = \"New studies included in review\"\n      ]node [\n      shape = box,\n      fontname = Helvetica,\n      color = Black,\n      fillcolor = \"\",\n      style = solid\n    ]\n    23 [\n      label = \"Total studies included in\nmeta-analysis (n = 6)\nReports of total included studies\nin meta-analysis (n = 6)\",\n      width = 3.5,\n      height = 1,\n      pos = \"2.25,-0.5!\",\n      tooltip = \"Total studies included in meta-analysis\"\n    ]node [\n        shape = square,\n        width = 0,\n        color=White\n      ]\n\n\nnode [\n        shape = square,\n        width = 0,\n        style=invis\n      ]\n      C [\n        label = \"\",\n        width = 3.5,\n        height = 0.5,\n        pos = \"6.25,3.375!\",\n        tooltip = \"\"\n      ]\n      subgraph cluster1 {\n        edge [\n          style = invis\n      ]\n      3->4;\n      3->5;\n      edge [\n        color = Black,\n        arrowhead = normal,\n        arrowtail = none,\n        style = filled\n      ]\n      4->5;\n      4->6;\n      6->7;\n      6->8;\n      8->9;\n      8->10;\n      10->C;\n      10->12;\n      edge [\n      style = invis\n      ]\n      5->7;\n      7->9;\n      9->11;\n      \n      }\nedge [\n          color = \"Black\",\n          arrowhead = \"normal\",\n          arrowtail = \"none\"\n        ]\n        12->23;\n\n\n\n{\n      rank = same; 3}\n      {\n      rank = same; 4; 5}\n        {\n          rank = same; 6; 7\n        }\n        {\n          rank = same; 8; 9}\n      {\n      rank = same; 10; 11}\n      {\n      rank = same; 12}\n      }","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Upstream counts come from the Covidence export. The duplicate-removal count is shown as 0 pending confirmation, and the 52 → 48 step (reports not retrieved, n = 4) is provisional.</p>
+</div>
+</div>
+<section id="analytic-selection-flow-echinocandin-contrast" class="level2">
+<h2 class="anchored" data-anchor-id="analytic-selection-flow-echinocandin-contrast">Analytic selection flow (echinocandin contrast)</h2>
+<p>The review-level diagram above covers all 21 included studies. The narrower flow below shows the <strong>analytic selection for the echinocandin-versus-monotherapy mortality comparison</strong> specifically — the 6 studies (3 primary + 3 sensitivity) used in this site’s pairwise synthesis.</p>
 <div class="cell" data-layout-align="default">
 <div class="cell-output-display">
 <div>
@@ -222,6 +322,7 @@ ul.task-list li input[type="checkbox"] {
 <p>Six studies met criteria for the echinocandin-versus-monotherapy mortality comparison. The <strong>primary</strong> synthesis uses the three studies reporting in-hospital or ~30-day mortality; the pre-planned <strong>sensitivity</strong> synthesis adds three studies reporting longer-timepoint mortality (one of which, Li2024a, is confounded and flagged).</p>
 
 
+</section>
 
 </main> <!-- /main -->
 <!-- Hidden widget mount + visible EN/IT toggle -->
@@ -339,7 +440,7 @@ ul.task-list li input[type="checkbox"] {
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp("https:\/\/Russlewisbo\.github\.io\/PCP-combination\/");
+        var filterRegex = new RegExp('/' + window.location.host + '/');
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }

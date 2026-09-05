@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.9.35">
+<meta name="generator" content="quarto-1.10.18">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -12,10 +12,13 @@
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
 */
-code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
-div.columns{display: flex; gap: min(4vw, 1.5em);}
-div.column{flex: auto; overflow-x: auto;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
 div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 ul.task-list{list-style: none;}
 ul.task-list li input[type="checkbox"] {
@@ -74,10 +77,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-46f66b053e56abd73bb6e954d61a315b.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-158031087360bce0ff56dc785ce39e06.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-6ac2aec46ad7f46b16024ee4409aa65c.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -180,6 +183,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <li>
     <a class="dropdown-item" href="./sensitivity.html">
  <span class="dropdown-text">Sensitivity analyses</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./goodness-of-fit.html">
+ <span class="dropdown-text">Goodness of fit</span></a>
   </li>  
     </ul>
   </li>
@@ -416,18 +423,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>rd <span class="ot">&lt;-</span> bm_rd<span class="sc">$</span>summary[, <span class="st">"mu"</span>]</span>
 <span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="co"># 95% prediction interval (OR scale) from the odds-ratio model's predictive distribution</span></span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">3391</span>)</span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">&lt;-</span> <span class="fu">exp</span>(<span class="fu">quantile</span>(bm_sens<span class="sc">$</span><span class="fu">rposterior</span>(<span class="at">n =</span> <span class="fl">2e4</span>, <span class="at">predict =</span> <span class="cn">TRUE</span>)[, <span class="st">"theta"</span>], <span class="fu">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>)))</span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(</span>
-<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">Quantity =</span> <span class="fu">c</span>(<span class="st">"Pooled odds ratio"</span>, <span class="st">"Risk difference"</span>, <span class="st">"Number needed to treat (point)"</span>,</span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>               <span class="st">"95% prediction interval (OR)"</span>),</span>
-<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">Estimate =</span> <span class="fu">c</span>(<span class="fu">fmt</span>(bm_sens),</span>
-<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>               <span class="fu">sprintf</span>(<span class="st">"%.1f%% (95%% CrI %.1f%% to %.1f%%)"</span>,</span>
-<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>                       <span class="dv">100</span> <span class="sc">*</span> rd[<span class="st">"median"</span>], <span class="dv">100</span> <span class="sc">*</span> rd[<span class="st">"95% lower"</span>], <span class="dv">100</span> <span class="sc">*</span> rd[<span class="st">"95% upper"</span>]),</span>
-<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>               <span class="fu">sprintf</span>(<span class="st">"%.0f (to prevent one death)"</span>, <span class="dv">1</span> <span class="sc">/</span> <span class="fu">abs</span>(rd[<span class="st">"median"</span>])),</span>
-<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>               <span class="fu">sprintf</span>(<span class="st">"%.2f to %.2f"</span>, pred[<span class="dv">1</span>], pred[<span class="dv">2</span>]))</span>
-<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span> knitr<span class="sc">::</span><span class="fu">kable</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">&lt;-</span> <span class="fu">exp</span>(bm_sens<span class="sc">$</span><span class="fu">qposterior</span>(<span class="at">mu.p =</span> <span class="fu">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>), <span class="at">predict =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">Quantity =</span> <span class="fu">c</span>(<span class="st">"Pooled odds ratio"</span>, <span class="st">"Risk difference"</span>, <span class="st">"Number needed to treat (point)"</span>,</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>               <span class="st">"95% prediction interval (OR)"</span>),</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">Estimate =</span> <span class="fu">c</span>(<span class="fu">fmt</span>(bm_sens),</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>               <span class="fu">sprintf</span>(<span class="st">"%.1f%% (95%% CrI %.1f%% to %.1f%%)"</span>,</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>                       <span class="dv">100</span> <span class="sc">*</span> rd[<span class="st">"median"</span>], <span class="dv">100</span> <span class="sc">*</span> rd[<span class="st">"95% lower"</span>], <span class="dv">100</span> <span class="sc">*</span> rd[<span class="st">"95% upper"</span>]),</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>               <span class="fu">sprintf</span>(<span class="st">"%.0f (to prevent one death)"</span>, <span class="dv">1</span> <span class="sc">/</span> <span class="fu">abs</span>(rd[<span class="st">"median"</span>])),</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>               <span class="fu">sprintf</span>(<span class="st">"%.2f to %.2f"</span>, pred[<span class="dv">1</span>], pred[<span class="dv">2</span>]))</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span> knitr<span class="sc">::</span><span class="fu">kable</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -452,13 +458,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="even">
 <td style="text-align: left;">95% prediction interval (OR)</td>
-<td style="text-align: left;">0.24 to 2.43</td>
+<td style="text-align: left;">0.24 to 2.44</td>
 </tr>
 </tbody>
 </table>
 </div>
 </div>
-<p>The pooled risk difference is about 6 fewer deaths per 100 patients, but its credible interval spans benefit and harm, so the point NNT of 16 is highly uncertain. The <strong>prediction interval (OR 0.24-2.43)</strong> is the key caution: in a new setting the true effect could plausibly range from a substantial mortality reduction to a doubling of the odds of death.</p>
+<p>The pooled risk difference is about 6 fewer deaths per 100 patients, but its credible interval spans benefit and harm, so the point NNT of 16 is highly uncertain. The <strong>prediction interval (OR 0.24-2.44)</strong> is the key caution: in a new setting the true effect could plausibly range from a substantial mortality reduction to a doubling of the odds of death.</p>
 </section>
 <section id="secondary-outcome-clinical-response" class="level2">
 <h2 class="anchored" data-anchor-id="secondary-outcome-clinical-response">Secondary outcome: clinical response</h2>
@@ -683,7 +689,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp("https:\/\/Russlewisbo\.github\.io\/PCP-combination\/");
+        var filterRegex = new RegExp('/' + window.location.host + '/');
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }

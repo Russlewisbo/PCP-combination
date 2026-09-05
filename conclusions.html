@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.9.35">
+<meta name="generator" content="quarto-1.10.18">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -12,10 +12,13 @@
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
 */
-code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
-div.columns{display: flex; gap: min(4vw, 1.5em);}
-div.column{flex: auto; overflow-x: auto;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
 div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 ul.task-list{list-style: none;}
 ul.task-list li input[type="checkbox"] {
@@ -74,10 +77,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-46f66b053e56abd73bb6e954d61a315b.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-158031087360bce0ff56dc785ce39e06.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-6ac2aec46ad7f46b16024ee4409aa65c.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -181,6 +184,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="dropdown-item" href="./sensitivity.html">
  <span class="dropdown-text">Sensitivity analyses</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="./goodness-of-fit.html">
+ <span class="dropdown-text">Goodness of fit</span></a>
+  </li>  
     </ul>
   </li>
   <li class="nav-item">
@@ -212,6 +219,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#beyond-mortality" id="toc-beyond-mortality" class="nav-link" data-scroll-target="#beyond-mortality">Beyond mortality</a></li>
   <li><a href="#what-supports-the-estimate" id="toc-what-supports-the-estimate" class="nav-link" data-scroll-target="#what-supports-the-estimate">What supports the estimate</a></li>
   <li><a href="#what-limits-it" id="toc-what-limits-it" class="nav-link" data-scroll-target="#what-limits-it">What limits it</a></li>
+  <li><a href="#model-adequacy-and-influence" id="toc-model-adequacy-and-influence" class="nav-link" data-scroll-target="#model-adequacy-and-influence">Model adequacy and influence</a></li>
+  <li><a href="#certainty-of-evidence-grade" id="toc-certainty-of-evidence-grade" class="nav-link" data-scroll-target="#certainty-of-evidence-grade">Certainty of evidence (GRADE)</a></li>
   <li><a href="#relation-to-the-wider-literature" id="toc-relation-to-the-wider-literature" class="nav-link" data-scroll-target="#relation-to-the-wider-literature">Relation to the wider literature</a></li>
   <li><a href="#bottom-line" id="toc-bottom-line" class="nav-link" data-scroll-target="#bottom-line">Bottom line</a></li>
   </ul>
@@ -248,17 +257,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>bm_sens    <span class="ot">&lt;-</span> <span class="fu">fit_bm</span>(ma)</span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># 95% prediction interval (OR) and pooled clinical response, for the summary below</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">3391</span>)</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">&lt;-</span> <span class="fu">exp</span>(<span class="fu">quantile</span>(bm_sens<span class="sc">$</span><span class="fu">rposterior</span>(<span class="at">n =</span> <span class="fl">2e4</span>, <span class="at">predict =</span> <span class="cn">TRUE</span>)[, <span class="st">"theta"</span>], <span class="fu">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>)))</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>resp <span class="ot">&lt;-</span> tibble<span class="sc">::</span><span class="fu">tribble</span>(</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="sc">~</span>study,    <span class="sc">~</span>e_comb, <span class="sc">~</span>n_comb, <span class="sc">~</span>e_ref, <span class="sc">~</span>n_ref, <span class="sc">~</span>confounded,</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Jin2019"</span>,      <span class="dv">24</span>,      <span class="dv">35</span>,     <span class="dv">54</span>,     <span class="dv">91</span>, <span class="cn">FALSE</span>,</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Qi2023"</span>,       <span class="dv">33</span>,      <span class="dv">43</span>,     <span class="dv">11</span>,     <span class="dv">21</span>, <span class="cn">FALSE</span>,</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Li2024a"</span>,      <span class="dv">20</span>,      <span class="dv">20</span>,     <span class="dv">12</span>,     <span class="dv">18</span>, <span class="cn">TRUE</span>)</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>respE <span class="ot">&lt;-</span> <span class="fu">escalc</span>(<span class="at">measure =</span> <span class="st">"OR"</span>, <span class="at">ai =</span> e_comb, <span class="at">n1i =</span> n_comb, <span class="at">ci =</span> e_ref, <span class="at">n2i =</span> n_ref,</span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>                <span class="at">data =</span> resp, <span class="at">slab =</span> study)</span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>respE<span class="sc">$</span>sei <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(respE<span class="sc">$</span>vi)</span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>bm_resp_clean <span class="ot">&lt;-</span> <span class="fu">fit_bm</span>(dplyr<span class="sc">::</span><span class="fu">filter</span>(respE, <span class="sc">!</span>confounded))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">&lt;-</span> <span class="fu">exp</span>(bm_sens<span class="sc">$</span><span class="fu">qposterior</span>(<span class="at">mu.p =</span> <span class="fu">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>), <span class="at">predict =</span> <span class="cn">TRUE</span>))  <span class="co"># analytic 95% prediction interval</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>resp <span class="ot">&lt;-</span> tibble<span class="sc">::</span><span class="fu">tribble</span>(</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="sc">~</span>study,    <span class="sc">~</span>e_comb, <span class="sc">~</span>n_comb, <span class="sc">~</span>e_ref, <span class="sc">~</span>n_ref, <span class="sc">~</span>confounded,</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Jin2019"</span>,      <span class="dv">24</span>,      <span class="dv">35</span>,     <span class="dv">54</span>,     <span class="dv">91</span>, <span class="cn">FALSE</span>,</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Qi2023"</span>,       <span class="dv">33</span>,      <span class="dv">43</span>,     <span class="dv">11</span>,     <span class="dv">21</span>, <span class="cn">FALSE</span>,</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Li2024a"</span>,      <span class="dv">20</span>,      <span class="dv">20</span>,     <span class="dv">12</span>,     <span class="dv">18</span>, <span class="cn">TRUE</span>)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>respE <span class="ot">&lt;-</span> <span class="fu">escalc</span>(<span class="at">measure =</span> <span class="st">"OR"</span>, <span class="at">ai =</span> e_comb, <span class="at">n1i =</span> n_comb, <span class="at">ci =</span> e_ref, <span class="at">n2i =</span> n_ref,</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>                <span class="at">data =</span> resp, <span class="at">slab =</span> study)</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>respE<span class="sc">$</span>sei <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(respE<span class="sc">$</span>vi)</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>bm_resp_clean <span class="ot">&lt;-</span> <span class="fu">fit_bm</span>(dplyr<span class="sc">::</span><span class="fu">filter</span>(respE, <span class="sc">!</span>confounded))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <div class="callout callout-style-default callout-note callout-titled">
@@ -276,11 +284,11 @@ Note
 </div>
 <section id="summary-of-findings" class="level2">
 <h2 class="anchored" data-anchor-id="summary-of-findings">Summary of findings</h2>
-<p>In source-verified, HIV-negative PCP cohorts, adjunctive echinocandin plus TMP-SMX shows a <strong>possible but inconclusive</strong> mortality benefit versus TMP-SMX monotherapy. The sensitivity-analysis pooled odds ratio is 0.76 (95% CrI 0.43–1.37) (posterior probability of benefit 84%), and the primary analysis is 0.78 (95% CrI 0.31–1.93). The <a href="./frequentist.html">frequentist</a> random-effects estimate (OR 0.75, 95% CI 0.42–1.36) agrees closely, as does an independent <a href="./model-fit.html">JAGS MCMC refit</a>.</p>
+<p>In source-verified, HIV-negative PCP cohorts, adjunctive echinocandin plus TMP-SMX shows a <strong>possible but inconclusive</strong> mortality benefit versus TMP-SMX monotherapy. The sensitivity-analysis pooled odds ratio is 0.76 (95% CrI 0.43–1.37) (posterior probability of benefit 84%), and the primary analysis is 0.78 (95% CrI 0.31–1.93). The <a href="./frequentist.html">frequentist</a> random-effects estimate (OR 0.75, 95% CI 0.42–1.36) agrees closely, as does an independent <a href="./model-fit.html">random-walk Metropolis refit</a>.</p>
 </section>
 <section id="beyond-mortality" class="level2">
 <h2 class="anchored" data-anchor-id="beyond-mortality">Beyond mortality</h2>
-<p>Two further readings sharpen the interpretation. First, the <strong>95% prediction interval</strong> for the odds ratio is 0.24–2.43: even though the pooled estimate leans protective, the true effect in a new setting could plausibly range from a substantial mortality reduction to a doubling of the odds of death. Second, for the secondary outcome of <strong>clinical response</strong>, the pooled odds ratio favours combination therapy (1.87 (95% CrI 0.78–4.46), excluding the confounded Li2024a) and is directionally consistent with Yang et al.’s reported response benefit — but, like mortality, its credible interval still includes no effect. See the <a href="./bayesian.html#secondary-outcome-clinical-response">Bayesian results</a> page for details.</p>
+<p>Two further readings sharpen the interpretation. First, the <strong>95% prediction interval</strong> for the odds ratio is 0.24–2.44: even though the pooled estimate leans protective, the true effect in a new setting could plausibly range from a substantial mortality reduction to a doubling of the odds of death. Second, for the secondary outcome of <strong>clinical response</strong>, the pooled odds ratio favours combination therapy (1.87 (95% CrI 0.78–4.46), excluding the confounded Li2024a) and is directionally consistent with Yang et al.’s reported response benefit — but, like mortality, its credible interval still includes no effect. See the <a href="./bayesian.html#secondary-outcome-clinical-response">Bayesian results</a> page for details.</p>
 </section>
 <section id="what-supports-the-estimate" class="level2">
 <h2 class="anchored" data-anchor-id="what-supports-the-estimate">What supports the estimate</h2>
@@ -297,6 +305,131 @@ Note
 <li><strong>Confounded and heterogeneous.</strong> Li2024a bundles caspofungin with corticosteroid and a lower TMP dose; mortality timepoints and treatment timing vary across studies.</li>
 <li><strong>Incomplete corpus.</strong> Seven studies included by Yang et al.&nbsp;(2026) could not be retrieved — mostly Chinese-language papers and theses (CNKI/Wanfang); one (Wang-ZG-2019) was obtained and found ineligible (single-arm). Their absence limits power and may introduce language/selection bias.</li>
 </ul>
+</section>
+<section id="model-adequacy-and-influence" class="level2">
+<h2 class="anchored" data-anchor-id="model-adequacy-and-influence">Model adequacy and influence</h2>
+<p>The random-effects model is an adequate description of the six studies: every observed odds ratio falls within its posterior predictive interval, and the modelled heterogeneity matches the data (omnibus Cochran’s Q posterior predictive <em>p</em> = 0.40). The residual fragility comes from two influential studies pulling in opposite directions rather than from a poorly fitting model. Full diagnostics are on the <a href="./goodness-of-fit.html">goodness-of-fit</a> page.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/gof_baujat.png" class="img-fluid figure-img" style="width:75.0%"></p>
+<figcaption>Baujat plot — Qi2025 drives both the heterogeneity and the pooled estimate; Xu2025 is its counterweight.</figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/gof_ppc.png" class="img-fluid figure-img" style="width:75.0%"></p>
+<figcaption>Posterior predictive check — observed odds ratios (open points) all fall within their 95% posterior predictive intervals (bars).</figcaption>
+</figure>
+</div>
+</section>
+<section id="certainty-of-evidence-grade" class="level2">
+<h2 class="anchored" data-anchor-id="certainty-of-evidence-grade">Certainty of evidence (GRADE)</h2>
+<p>Applying GRADE to the primary outcome, all-cause mortality. As a body of <strong>non-randomised</strong> evidence, certainty starts at <em>low</em> and is then rated across the five domains below.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>p_ctrl <span class="ot">&lt;-</span> <span class="fu">sum</span>(ma<span class="sc">$</span>e_ref) <span class="sc">/</span> <span class="fu">sum</span>(ma<span class="sc">$</span>n_ref)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>orv <span class="ot">&lt;-</span> <span class="fu">or_ci</span>(bm_sens)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>risk_from_or <span class="ot">&lt;-</span> <span class="cf">function</span>(p, or) { o <span class="ot">&lt;-</span> p <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">-</span> p) <span class="sc">*</span> or; o <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">+</span> o) }</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>tibble<span class="sc">::</span><span class="fu">tibble</span>(</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Field =</span> <span class="fu">c</span>(<span class="st">"Outcome"</span>, <span class="st">"Participants (studies)"</span>, <span class="st">"Relative effect (OR)"</span>,</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>            <span class="st">"Assumed risk, monotherapy"</span>, <span class="st">"Corresponding risk, combination (95% CrI)"</span>,</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>            <span class="st">"Certainty"</span>),</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">Value =</span> <span class="fu">c</span>(</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="st">"All-cause mortality (in-hospital / ~30-day)"</span>,</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sprintf</span>(<span class="st">"%d (6 observational studies)"</span>, <span class="fu">sum</span>(ma<span class="sc">$</span>n_comb <span class="sc">+</span> ma<span class="sc">$</span>n_ref)),</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">fmt</span>(bm_sens),</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sprintf</span>(<span class="st">"%.0f per 1000"</span>, p_ctrl <span class="sc">*</span> <span class="dv">1000</span>),</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sprintf</span>(<span class="st">"%.0f per 1000 (%.0f to %.0f)"</span>,</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>            <span class="fu">risk_from_or</span>(p_ctrl, orv[<span class="dv">1</span>]) <span class="sc">*</span> <span class="dv">1000</span>,</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>            <span class="fu">risk_from_or</span>(p_ctrl, orv[<span class="dv">2</span>]) <span class="sc">*</span> <span class="dv">1000</span>,</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>            <span class="fu">risk_from_or</span>(p_ctrl, orv[<span class="dv">3</span>]) <span class="sc">*</span> <span class="dv">1000</span>),</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">"\u2295\u25cb\u25cb\u25cb Very low"</span>)</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span> knitr<span class="sc">::</span><span class="fu">kable</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 48%">
+<col style="width: 51%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Field</th>
+<th style="text-align: left;">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Outcome</td>
+<td style="text-align: left;">All-cause mortality (in-hospital / ~30-day)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Participants (studies)</td>
+<td style="text-align: left;">473 (6 observational studies)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Relative effect (OR)</td>
+<td style="text-align: left;">0.76 (95% CrI 0.43–1.37)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Assumed risk, monotherapy</td>
+<td style="text-align: left;">398 per 1000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Corresponding risk, combination (95% CrI)</td>
+<td style="text-align: left;">335 per 1000 (220 to 475)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Certainty</td>
+<td style="text-align: left;">⊕○○○ Very low</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>GRADE domain</th>
+<th>Judgment</th>
+<th>Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Risk of bias</td>
+<td>Serious (−1)</td>
+<td>All studies non-randomised; confounding by indication; Li2024a critical (bundled co-interventions).</td>
+</tr>
+<tr class="even">
+<td>Inconsistency</td>
+<td>Not serious</td>
+<td>Credible intervals overlap and the direction is largely consistent; moderate I² (42%) is attributable to one influential study.</td>
+</tr>
+<tr class="odd">
+<td>Indirectness</td>
+<td>Not serious</td>
+<td>Population, intervention, comparator and outcome match the review question directly.</td>
+</tr>
+<tr class="even">
+<td>Imprecision</td>
+<td>Serious (−1)</td>
+<td>Pooled CrI (0.43–1.37) spans meaningful benefit and harm; only 473 participants; wide prediction interval.</td>
+</tr>
+<tr class="odd">
+<td>Publication bias</td>
+<td>Suspected</td>
+<td>Seven eligible studies (mostly Chinese-language) could not be retrieved; too few studies to test formally.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Overall certainty: very low (⊕◯◯◯).</strong> We are very uncertain whether adjunctive echinocandin reduces all-cause mortality in HIV-negative PCP. This rating is preliminary and should be finalised after dual ROBINS-I assessment.</p>
 </section>
 <section id="relation-to-the-wider-literature" class="level2">
 <h2 class="anchored" data-anchor-id="relation-to-the-wider-literature">Relation to the wider literature</h2>

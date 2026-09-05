@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.9.35">
+<meta name="generator" content="quarto-1.10.18">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -12,10 +12,13 @@
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
 */
-code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
-div.columns{display: flex; gap: min(4vw, 1.5em);}
-div.column{flex: auto; overflow-x: auto;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
 div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 ul.task-list{list-style: none;}
 ul.task-list li input[type="checkbox"] {
@@ -39,10 +42,10 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-46f66b053e56abd73bb6e954d61a315b.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-158031087360bce0ff56dc785ce39e06.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-6ac2aec46ad7f46b16024ee4409aa65c.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -145,6 +148,10 @@ ul.task-list li input[type="checkbox"] {
         <li>
     <a class="dropdown-item" href="./sensitivity.html">
  <span class="dropdown-text">Sensitivity analyses</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./goodness-of-fit.html">
+ <span class="dropdown-text">Goodness of fit</span></a>
   </li>  
     </ul>
   </li>
@@ -258,8 +265,9 @@ Note
 <li><strong><a href="./prisma.html">PRISMA flow</a></strong> — study selection for this contrast.</li>
 <li><strong><a href="./frequentist.html">Frequentist results</a></strong> — REML and Mantel-Haenszel pooling, heterogeneity, funnel plot.</li>
 <li><strong><a href="./bayesian.html">Bayesian results</a></strong> — posterior forest plot and marginal posteriors.</li>
-<li><strong><a href="./model-fit.html">Model fit &amp; MCMC</a></strong> — JAGS refit with convergence diagnostics (R̂, ESS, trace plots).</li>
+<li><strong><a href="./model-fit.html">Model fit &amp; MCMC</a></strong> — independent random-walk Metropolis refit with convergence diagnostics (R̂, ESS, trace plots).</li>
 <li><strong><a href="./sensitivity.html">Sensitivity</a></strong> — leave-one-out, prior sensitivity, timing subgroups.</li>
+<li><strong><a href="./goodness-of-fit.html">Goodness of fit</a></strong> — fit and influence diagnostics, posterior predictive checks.</li>
 <li><strong><a href="./risk-of-bias.html">Risk of bias</a></strong> — preliminary ROBINS-I assessment.</li>
 <li><strong><a href="./conclusions.html">Conclusions</a></strong> — summary and implications.</li>
 </ul>
@@ -395,7 +403,7 @@ Note
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp("https:\/\/Russlewisbo\.github\.io\/PCP-combination\/");
+        var filterRegex = new RegExp('/' + window.location.host + '/');
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }
