@@ -321,7 +321,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">7183</span>)</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>ps <span class="ot">&lt;-</span> bm_sens<span class="sc">$</span><span class="fu">rposterior</span>(<span class="at">n =</span> <span class="dv">6000</span>)   <span class="co"># columns: tau, mu (log-OR scale)</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>ps <span class="ot">&lt;-</span> bm_sens<span class="sc">$</span><span class="fu">rposterior</span>(<span class="at">n =</span> <span class="dv">4000</span>)   <span class="co"># columns: tau, mu (log-OR scale)</span></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Conditional posterior of each study's true effect given (mu, tau, y_i, sei_i)</span></span>
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>theta_draws <span class="ot">&lt;-</span> purrr<span class="sc">::</span><span class="fu">map_dfr</span>(<span class="fu">seq_len</span>(<span class="fu">nrow</span>(ma)), <span class="cf">function</span>(i) {</span>
