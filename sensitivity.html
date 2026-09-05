@@ -217,7 +217,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul>
   <li><a href="#leave-one-out" id="toc-leave-one-out" class="nav-link active" data-scroll-target="#leave-one-out">Leave-one-out</a></li>
   <li><a href="#prior-sensitivity" id="toc-prior-sensitivity" class="nav-link" data-scroll-target="#prior-sensitivity">Prior sensitivity</a></li>
-  <li><a href="#timing-subgroups" id="toc-timing-subgroups" class="nav-link" data-scroll-target="#timing-subgroups">Timing subgroups</a></li>
+  <li><a href="#timing-subgroups" id="toc-timing-subgroups" class="nav-link" data-scroll-target="#timing-subgroups">Timing subgroups</a>
+  <ul class="collapse">
+  <li><a href="#formal-timing-test-and-comparison-with-yang-et-al.-2026" id="toc-formal-timing-test-and-comparison-with-yang-et-al.-2026" class="nav-link" data-scroll-target="#formal-timing-test-and-comparison-with-yang-et-al.-2026">Formal timing test and comparison with Yang et al.&nbsp;2026</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -506,8 +509,104 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <p>No pure salvage-vs-monotherapy study is available in our verified set, so a salvage subgroup is not estimable. Both subgroups remain inconclusive.</p>
+<section id="formal-timing-test-and-comparison-with-yang-et-al.-2026" class="level3">
+<h3 class="anchored" data-anchor-id="formal-timing-test-and-comparison-with-yang-et-al.-2026">Formal timing test and comparison with Yang et al.&nbsp;2026</h3>
+<div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>re_over <span class="ot">&lt;-</span> <span class="fu">rma</span>(yi, vi, <span class="at">data =</span> ma, <span class="at">method =</span> <span class="st">"REML"</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>re_init <span class="ot">&lt;-</span> <span class="fu">rma</span>(yi, vi, <span class="at">data =</span> dplyr<span class="sc">::</span><span class="fu">filter</span>(ma, timing <span class="sc">==</span> <span class="st">"initial"</span>), <span class="at">method =</span> <span class="st">"REML"</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>re_mix  <span class="ot">&lt;-</span> <span class="fu">rma</span>(yi, vi, <span class="at">data =</span> dplyr<span class="sc">::</span><span class="fu">filter</span>(ma, timing <span class="sc">==</span> <span class="st">"mixed"</span>),   <span class="at">method =</span> <span class="st">"REML"</span>)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>re_mod  <span class="ot">&lt;-</span> <span class="fu">rma</span>(yi, vi, <span class="at">mods =</span> <span class="sc">~</span><span class="fu">factor</span>(timing), <span class="at">data =</span> ma, <span class="at">method =</span> <span class="st">"REML"</span>)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>ours <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">Analysis =</span> <span class="fu">c</span>(<span class="st">"Overall (k=6)"</span>, <span class="st">"Initial (k=3)"</span>, <span class="st">"Mixed (k=3)"</span>),</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">OR =</span> <span class="fu">c</span>(<span class="fu">exp</span>(re_over<span class="sc">$</span>b), <span class="fu">exp</span>(re_init<span class="sc">$</span>b), <span class="fu">exp</span>(re_mix<span class="sc">$</span>b)),</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">lo =</span> <span class="fu">c</span>(<span class="fu">exp</span>(re_over<span class="sc">$</span>ci.lb), <span class="fu">exp</span>(re_init<span class="sc">$</span>ci.lb), <span class="fu">exp</span>(re_mix<span class="sc">$</span>ci.lb)),</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">hi =</span> <span class="fu">c</span>(<span class="fu">exp</span>(re_over<span class="sc">$</span>ci.ub), <span class="fu">exp</span>(re_init<span class="sc">$</span>ci.ub), <span class="fu">exp</span>(re_mix<span class="sc">$</span>ci.ub)),</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">source =</span> <span class="st">"Ours (REML)"</span>)</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>yang <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">Analysis =</span> <span class="fu">c</span>(<span class="st">"Overall"</span>, <span class="st">"Initial"</span>), <span class="at">OR =</span> <span class="fu">c</span>(<span class="fl">0.93</span>, <span class="fl">0.50</span>),</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">lo =</span> <span class="fu">c</span>(<span class="fl">0.71</span>, <span class="fl">0.32</span>), <span class="at">hi =</span> <span class="fu">c</span>(<span class="fl">1.21</span>, <span class="fl">0.77</span>), <span class="at">source =</span> <span class="st">"Yang 2026"</span>)</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="fu">bind_rows</span>(ours, yang) <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">c</span>(OR, lo, hi), <span class="sc">~</span><span class="fu">round</span>(.x, <span class="dv">2</span>))) <span class="sc">|&gt;</span> knitr<span class="sc">::</span><span class="fu">kable</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Analysis</th>
+<th style="text-align: right;">OR</th>
+<th style="text-align: right;">lo</th>
+<th style="text-align: right;">hi</th>
+<th style="text-align: left;">source</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Overall (k=6)</td>
+<td style="text-align: right;">0.75</td>
+<td style="text-align: right;">0.42</td>
+<td style="text-align: right;">1.36</td>
+<td style="text-align: left;">Ours (REML)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Initial (k=3)</td>
+<td style="text-align: right;">0.70</td>
+<td style="text-align: right;">0.37</td>
+<td style="text-align: right;">1.31</td>
+<td style="text-align: left;">Ours (REML)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Mixed (k=3)</td>
+<td style="text-align: right;">0.74</td>
+<td style="text-align: right;">0.23</td>
+<td style="text-align: right;">2.36</td>
+<td style="text-align: left;">Ours (REML)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Overall</td>
+<td style="text-align: right;">0.93</td>
+<td style="text-align: right;">0.71</td>
+<td style="text-align: right;">1.21</td>
+<td style="text-align: left;">Yang 2026</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Initial</td>
+<td style="text-align: right;">0.50</td>
+<td style="text-align: right;">0.32</td>
+<td style="text-align: right;">0.77</td>
+<td style="text-align: left;">Yang 2026</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>The <strong>within-data subgroup (moderator) test finds no timing effect modification</strong> (Q<sub>M</sub>(1) = 0.00, p = 0.994): our initial and mixed subgroups are nearly identical (OR ≈ 0.70 vs 0.74). This differs from Yang et al.&nbsp;2026, whose protective signal is concentrated in the <em>initial-therapy</em> subgroup (OR 0.50) against a null overall (0.93).</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>comp <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(ours, yang) <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">label =</span> <span class="fu">paste0</span>(Analysis, <span class="st">" \u2014 "</span>, source))</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>comp<span class="sc">$</span>label <span class="ot">&lt;-</span> <span class="fu">factor</span>(comp<span class="sc">$</span>label, <span class="at">levels =</span> <span class="fu">rev</span>(comp<span class="sc">$</span>label))</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(comp, <span class="fu">aes</span>(OR, label, <span class="at">color =</span> source)) <span class="sc">+</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">1</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"grey50"</span>) <span class="sc">+</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_pointrange</span>(<span class="fu">aes</span>(<span class="at">xmin =</span> lo, <span class="at">xmax =</span> hi), <span class="at">linewidth =</span> <span class="fl">0.6</span>, <span class="at">shape =</span> <span class="dv">18</span>) <span class="sc">+</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_log10</span>(<span class="at">breaks =</span> <span class="fu">c</span>(<span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>, <span class="dv">1</span>, <span class="fl">1.5</span>)) <span class="sc">+</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">`</span><span class="at">Ours (REML)</span><span class="st">`</span> <span class="ot">=</span> jama_blue_grey[[<span class="st">"dark"</span>]],</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>                                <span class="st">`</span><span class="at">Yang 2026</span><span class="st">`</span> <span class="ot">=</span> jama_blue_grey[[<span class="st">"medium"</span>]])) <span class="sc">+</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Mortality odds ratio (log scale) \u2014 &lt;1 favours combination"</span>, <span class="at">y =</span> <span class="cn">NULL</span>,</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">title =</span> <span class="st">"Mortality by treatment timing: ours vs Yang et al. 2026"</span>) <span class="sc">+</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_jama</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="sensitivity_files/figure-html/timing-forest-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Two caveats. The subgroup test has very low power (k = 3 per arm), so a non-significant result reflects near-identical point estimates rather than proof of no difference, and our “initial” tier contains the confounded Li2024a. A direct significance test of our estimates against Yang’s is not valid, since the two analyses share roughly nine studies — the comparison above is descriptive. The earlier “timing explains the gap” reading held only under a different regrouping (dropping the mixed Qi2025 → OR 0.59), not from timing acting as an effect modifier within our verified set.</p>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->

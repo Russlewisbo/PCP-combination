@@ -219,7 +219,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#posterior-forest-plot" id="toc-posterior-forest-plot" class="nav-link" data-scroll-target="#posterior-forest-plot">Posterior forest plot</a></li>
   <li><a href="#marginal-posteriors" id="toc-marginal-posteriors" class="nav-link" data-scroll-target="#marginal-posteriors">Marginal posteriors</a></li>
   <li><a href="#absolute-effect-nnt-and-prediction-interval" id="toc-absolute-effect-nnt-and-prediction-interval" class="nav-link" data-scroll-target="#absolute-effect-nnt-and-prediction-interval">Absolute effect, NNT, and prediction interval</a></li>
-  <li><a href="#secondary-outcome-clinical-response" id="toc-secondary-outcome-clinical-response" class="nav-link" data-scroll-target="#secondary-outcome-clinical-response">Secondary outcome: clinical response</a></li>
+  <li><a href="#secondary-outcome-clinical-response" id="toc-secondary-outcome-clinical-response" class="nav-link" data-scroll-target="#secondary-outcome-clinical-response">Secondary outcome: clinical response</a>
+  <ul class="collapse">
+  <li><a href="#heterogeneity-and-leave-one-out" id="toc-heterogeneity-and-leave-one-out" class="nav-link" data-scroll-target="#heterogeneity-and-leave-one-out">Heterogeneity and leave-one-out</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -568,9 +571,102 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
+<section id="heterogeneity-and-leave-one-out" class="level3">
+<h3 class="anchored" data-anchor-id="heterogeneity-and-leave-one-out">Heterogeneity and leave-one-out</h3>
+<div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>re_resp_all <span class="ot">&lt;-</span> <span class="fu">rma</span>(yi, vi, <span class="at">data =</span> respE, <span class="at">method =</span> <span class="st">"REML"</span>)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>re_resp_cln <span class="ot">&lt;-</span> <span class="fu">rma</span>(yi, vi, <span class="at">data =</span> dplyr<span class="sc">::</span><span class="fu">filter</span>(respE, <span class="sc">!</span>confounded), <span class="at">method =</span> <span class="st">"REML"</span>)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">Set                   =</span> <span class="fu">c</span>(<span class="st">"Clean (k=2)"</span>, <span class="st">"All (k=3, incl. Li2024a)"</span>),</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">I^2 (%)</span><span class="st">`</span>             <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">c</span>(re_resp_cln<span class="sc">$</span>I2, re_resp_all<span class="sc">$</span>I2)),</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">tau^2</span><span class="st">`</span>               <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">c</span>(re_resp_cln<span class="sc">$</span>tau2, re_resp_all<span class="sc">$</span>tau2), <span class="dv">2</span>),</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Q (df), p</span><span class="st">`</span>           <span class="ot">=</span> <span class="fu">c</span>(<span class="fu">sprintf</span>(<span class="st">"%.1f (%d), %.3f"</span>, re_resp_cln<span class="sc">$</span>QE, re_resp_cln<span class="sc">$</span>k <span class="sc">-</span> <span class="dv">1</span>, re_resp_cln<span class="sc">$</span>QEp),</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>                            <span class="fu">sprintf</span>(<span class="st">"%.1f (%d), %.3f"</span>, re_resp_all<span class="sc">$</span>QE, re_resp_all<span class="sc">$</span>k <span class="sc">-</span> <span class="dv">1</span>, re_resp_all<span class="sc">$</span>QEp)),</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Pooled OR (95% CrI)</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="fu">fmt</span>(bm_resp_clean), <span class="fu">fmt</span>(bm_resp_all))</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span> knitr<span class="sc">::</span><span class="fu">kable</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 31%">
+<col style="width: 10%">
+<col style="width: 7%">
+<col style="width: 18%">
+<col style="width: 31%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Set</th>
+<th style="text-align: right;">I^2 (%)</th>
+<th style="text-align: right;">tau^2</th>
+<th style="text-align: left;">Q (df), p</th>
+<th style="text-align: left;">Pooled OR (95% CrI)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Clean (k=2)</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: left;">1.0 (1), 0.324</td>
+<td style="text-align: left;">1.87 (95% CrI 0.78–4.46)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">All (k=3, incl.&nbsp;Li2024a)</td>
+<td style="text-align: right;">25</td>
+<td style="text-align: right;">0.14</td>
+<td style="text-align: left;">3.4 (2), 0.183</td>
+<td style="text-align: left;">2.19 (95% CrI 0.95–5.24)</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>purrr<span class="sc">::</span><span class="fu">map_dfr</span>(respE<span class="sc">$</span>study, <span class="cf">function</span>(s_) {</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  v <span class="ot">&lt;-</span> <span class="fu">or_ci</span>(<span class="fu">fit_bm</span>(dplyr<span class="sc">::</span><span class="fu">filter</span>(respE, study <span class="sc">!=</span> s_)))</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>(<span class="st">`</span><span class="at">Study removed</span><span class="st">`</span> <span class="ot">=</span> s_, <span class="at">OR =</span> <span class="fu">round</span>(v[<span class="dv">1</span>], <span class="dv">2</span>),</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>         <span class="st">`</span><span class="at">95% CrI</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">sprintf</span>(<span class="st">"%.2f\u2013%.2f"</span>, v[<span class="dv">2</span>], v[<span class="dv">3</span>]))</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>}) <span class="sc">|&gt;</span> knitr<span class="sc">::</span><span class="fu">kable</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Study removed</th>
+<th style="text-align: right;">OR</th>
+<th style="text-align: left;">95% CrI</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Jin2019</td>
+<td style="text-align: right;">3.31</td>
+<td style="text-align: left;">1.01–10.84</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Qi2023</td>
+<td style="text-align: right;">1.87</td>
+<td style="text-align: left;">0.65–5.80</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Li2024a</td>
+<td style="text-align: right;">1.87</td>
+<td style="text-align: left;">0.78–4.46</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>Among the two unconfounded studies there is <strong>no detectable heterogeneity</strong> (I² = 0); the modest heterogeneity in the k = 3 set comes entirely from Li2024a, whose near-separation 20/20 response inflates both its odds ratio and the between-study variance. Leave-one-out confirms the fragility — the pooled interval excludes 1 only when Jin2019 is dropped (leaving Qi2023 with the Li2024a outlier), whereas removing the confounded Li2024a returns the stable clean estimate. The response signal favours combination directionally but stays inconclusive.</p>
 <p>Need for <strong>mechanical ventilation</strong> is reported by several studies, but source verification found the figures are recorded inconsistently — largely as baseline or course-of-illness severity (need for ventilation at some point during the ICU stay) rather than a clearly-timed post-treatment event, and none of the studies time ventilation relative to treatment start. It is therefore <strong>not pooled</strong> here.</p>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->
