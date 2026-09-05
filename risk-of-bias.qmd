@@ -72,17 +72,93 @@ ggplot(rob_long, aes(domain, study, fill = judgment)) +
   theme(axis.text.x = element_text(angle = 30, hjust = 1))
 ```
 
-## Rationale
+## Domain-by-domain assessment (draft for ratification)
 
-- **D1 Confounding — Serious for all.** Non-randomised assignment; confounding by
-  indication is likely. Xu2025's monotherapy arm was systematically sicker; Qi2025's
-  comparison is an unadjusted subgroup from a risk-factor study.
-- **D4 Deviations / co-interventions — Critical for Li2024a.** Its combination arm bundles
-  caspofungin with a corticosteroid and a lower TMP dose, so an echinocandin effect cannot
-  be isolated. Mixed initial/salvage timing raises concern for Qi2025 and Xu2025.
-- **D2 Selection — Serious for Lu2017**, a tiny single-centre case series (n = 5 vs 6).
-- **D6 Outcome measurement — Low for all**: all-cause mortality is an objective endpoint.
+Each domain states the ROBINS-I question, the judgement applied, and the study-specific
+reasoning drawn from data extraction. **This is a single-pass, machine-assisted draft**: two
+reviewers should independently confirm or revise every cell of the table above and then
+reconcile (see [Ratification workflow](#ratification-workflow)).
 
-Overall, the body of evidence is at **serious** risk of bias (driven by confounding),
-with Li2024a at **critical** risk. This reinforces the cautious, inconclusive
-interpretation of the pooled estimate.
+### D1 — Confounding
+
+*Did baseline or time-varying confounding distort the treatment–outcome association?*
+
+**Serious for all six studies.** Treatment was allocated by clinicians, not randomised, so
+confounding by indication is the dominant threat. Few studies adjust, and where they do the
+results conflict: Jin2019 reports an all-patient adjusted HR ≈ 1.10 (near null), whereas
+Xu2025's IPTW/Cox analysis gives HR ≈ 2.97 — opposite in direction to the unadjusted pool,
+consistent with its combination arm being sicker at baseline. Qi2025's contrast is an
+unadjusted subgroup drawn from a risk-factor study. No study controls a pre-specified
+confounder set, so none reaches "moderate".
+
+### D2 — Selection of participants into the study
+
+*Was selection into the study or the analysis related to intervention and outcome?*
+
+**Serious for Lu2017** — a single-centre case series of 5 vs 6 patients, highly susceptible
+to selection. **Moderate elsewhere**: retrospective cohorts assembled from records, with
+Xu2025 explicitly flagging "selection bias in caspofungin use" and Qi2025 analysing a
+subgroup selected from a larger cohort.
+
+### D3 — Classification of interventions
+
+*Were intervention groups clearly defined and recorded at the time of treatment?*
+
+**Low for most** — echinocandin + TMP-SMX vs TMP-SMX are objectively documented from
+prescribing records. **Moderate for Li2024a**, whose "combination" arm bundles caspofungin
+with a corticosteroid and a lower TMP-SMX dose, blurring what the intervention actually is.
+
+### D4 — Deviations from intended interventions (co-interventions, timing)
+
+*Were there systematic differences in co-interventions or in treatment timing?*
+
+**Critical for Li2024a** — the caspofungin arm's corticosteroid and reduced-TMP co-
+interventions are confounded with the antifungal, so an echinocandin effect cannot be
+isolated. **Serious for Qi2025 and Xu2025**, where caspofungin timing is mixed
+initial/salvage and not cleanly recorded relative to treatment start. **Moderate** for the
+remaining studies (Lu2017, Jin2019, Qi2023).
+
+### D5 — Missing data
+
+*Were outcome (and covariate) data reasonably complete?*
+
+**Moderate for the retrospective cohorts Qi2025 and Xu2025 and the tiny Lu2017 series**,
+given incomplete covariate/outcome capture and no formal handling of missingness;
+**Low for Jin2019, Qi2023 and Li2024a**, where mortality was ascertained for all included
+patients.
+
+### D6 — Measurement of the outcome
+
+*Could outcome ascertainment differ between groups?*
+
+**Low for all.** The outcome is all-cause mortality (in-hospital / ~30-day) — an objective
+endpoint unlikely to be assessed differentially by treatment arm.
+
+### D7 — Selection of the reported result
+
+*Is the reported effect likely selected from multiple analyses or subgroups?*
+
+**Serious for Qi2025**, whose mortality comparison is a subgroup extracted from a
+risk-factor study with no pre-registered analysis plan (the same feature that produced
+Yang et al.'s ventilated-subgroup extraction error). **Moderate elsewhere**: retrospective
+designs without public protocols, so selective reporting cannot be excluded.
+
+## Overall judgement
+
+Following ROBINS-I (the overall rating tracks the least favourable domain), the body of
+evidence is at **serious** risk of bias — driven by confounding — with **Li2024a at
+critical** risk from its bundled co-interventions. This is the risk-of-bias input to the
+[GRADE assessment](conclusions.qmd#certainty-of-evidence-grade) (serious → −1). It is
+unlikely to improve under formal review, because every included study is non-randomised.
+
+## Ratification workflow
+
+To move this from *draft* to *final*:
+
+1. Two reviewers independently rate all 6 studies × 7 domains using the full ROBINS-I
+   signalling questions.
+2. Record both sets of judgements and reconcile disagreements (a third reviewer breaks ties).
+3. Replace the judgements in the table above with the reconciled consensus and remove the
+   preliminary banner.
+
+Until then, every judgement here is provisional.
