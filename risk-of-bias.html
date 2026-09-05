@@ -217,7 +217,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul>
   <li><a href="#domain-level-judgments" id="toc-domain-level-judgments" class="nav-link active" data-scroll-target="#domain-level-judgments">Domain-level judgments</a></li>
   <li><a href="#traffic-light-plot" id="toc-traffic-light-plot" class="nav-link" data-scroll-target="#traffic-light-plot">Traffic-light plot</a></li>
-  <li><a href="#rationale" id="toc-rationale" class="nav-link" data-scroll-target="#rationale">Rationale</a></li>
+  <li><a href="#domain-by-domain-assessment-draft-for-ratification" id="toc-domain-by-domain-assessment-draft-for-ratification" class="nav-link" data-scroll-target="#domain-by-domain-assessment-draft-for-ratification">Domain-by-domain assessment (draft for ratification)</a>
+  <ul class="collapse">
+  <li><a href="#d1-confounding" id="toc-d1-confounding" class="nav-link" data-scroll-target="#d1-confounding">D1 — Confounding</a></li>
+  <li><a href="#d2-selection-of-participants-into-the-study" id="toc-d2-selection-of-participants-into-the-study" class="nav-link" data-scroll-target="#d2-selection-of-participants-into-the-study">D2 — Selection of participants into the study</a></li>
+  <li><a href="#d3-classification-of-interventions" id="toc-d3-classification-of-interventions" class="nav-link" data-scroll-target="#d3-classification-of-interventions">D3 — Classification of interventions</a></li>
+  <li><a href="#d4-deviations-from-intended-interventions-co-interventions-timing" id="toc-d4-deviations-from-intended-interventions-co-interventions-timing" class="nav-link" data-scroll-target="#d4-deviations-from-intended-interventions-co-interventions-timing">D4 — Deviations from intended interventions (co-interventions, timing)</a></li>
+  <li><a href="#d5-missing-data" id="toc-d5-missing-data" class="nav-link" data-scroll-target="#d5-missing-data">D5 — Missing data</a></li>
+  <li><a href="#d6-measurement-of-the-outcome" id="toc-d6-measurement-of-the-outcome" class="nav-link" data-scroll-target="#d6-measurement-of-the-outcome">D6 — Measurement of the outcome</a></li>
+  <li><a href="#d7-selection-of-the-reported-result" id="toc-d7-selection-of-the-reported-result" class="nav-link" data-scroll-target="#d7-selection-of-the-reported-result">D7 — Selection of the reported result</a></li>
+  </ul></li>
+  <li><a href="#overall-judgement" id="toc-overall-judgement" class="nav-link" data-scroll-target="#overall-judgement">Overall judgement</a></li>
+  <li><a href="#ratification-workflow" id="toc-ratification-workflow" class="nav-link" data-scroll-target="#ratification-workflow">Ratification workflow</a></li>
   </ul>
 </nav>
     </div>
@@ -420,15 +431,58 @@ Warning
 </div>
 </div>
 </section>
-<section id="rationale" class="level2">
-<h2 class="anchored" data-anchor-id="rationale">Rationale</h2>
-<ul>
-<li><strong>D1 Confounding — Serious for all.</strong> Non-randomised assignment; confounding by indication is likely. Xu2025’s monotherapy arm was systematically sicker; Qi2025’s comparison is an unadjusted subgroup from a risk-factor study.</li>
-<li><strong>D4 Deviations / co-interventions — Critical for Li2024a.</strong> Its combination arm bundles caspofungin with a corticosteroid and a lower TMP dose, so an echinocandin effect cannot be isolated. Mixed initial/salvage timing raises concern for Qi2025 and Xu2025.</li>
-<li><strong>D2 Selection — Serious for Lu2017</strong>, a tiny single-centre case series (n = 5 vs 6).</li>
-<li><strong>D6 Outcome measurement — Low for all</strong>: all-cause mortality is an objective endpoint.</li>
-</ul>
-<p>Overall, the body of evidence is at <strong>serious</strong> risk of bias (driven by confounding), with Li2024a at <strong>critical</strong> risk. This reinforces the cautious, inconclusive interpretation of the pooled estimate.</p>
+<section id="domain-by-domain-assessment-draft-for-ratification" class="level2">
+<h2 class="anchored" data-anchor-id="domain-by-domain-assessment-draft-for-ratification">Domain-by-domain assessment (draft for ratification)</h2>
+<p>Each domain states the ROBINS-I question, the judgement applied, and the study-specific reasoning drawn from data extraction. <strong>This is a single-pass, machine-assisted draft</strong>: two reviewers should independently confirm or revise every cell of the table above and then reconcile (see <a href="#ratification-workflow">Ratification workflow</a>).</p>
+<section id="d1-confounding" class="level3">
+<h3 class="anchored" data-anchor-id="d1-confounding">D1 — Confounding</h3>
+<p><em>Did baseline or time-varying confounding distort the treatment–outcome association?</em></p>
+<p><strong>Serious for all six studies.</strong> Treatment was allocated by clinicians, not randomised, so confounding by indication is the dominant threat. Few studies adjust, and where they do the results conflict: Jin2019 reports an all-patient adjusted HR ≈ 1.10 (near null), whereas Xu2025’s IPTW/Cox analysis gives HR ≈ 2.97 — opposite in direction to the unadjusted pool, consistent with its combination arm being sicker at baseline. Qi2025’s contrast is an unadjusted subgroup drawn from a risk-factor study. No study controls a pre-specified confounder set, so none reaches “moderate”.</p>
+</section>
+<section id="d2-selection-of-participants-into-the-study" class="level3">
+<h3 class="anchored" data-anchor-id="d2-selection-of-participants-into-the-study">D2 — Selection of participants into the study</h3>
+<p><em>Was selection into the study or the analysis related to intervention and outcome?</em></p>
+<p><strong>Serious for Lu2017</strong> — a single-centre case series of 5 vs 6 patients, highly susceptible to selection. <strong>Moderate elsewhere</strong>: retrospective cohorts assembled from records, with Xu2025 explicitly flagging “selection bias in caspofungin use” and Qi2025 analysing a subgroup selected from a larger cohort.</p>
+</section>
+<section id="d3-classification-of-interventions" class="level3">
+<h3 class="anchored" data-anchor-id="d3-classification-of-interventions">D3 — Classification of interventions</h3>
+<p><em>Were intervention groups clearly defined and recorded at the time of treatment?</em></p>
+<p><strong>Low for most</strong> — echinocandin + TMP-SMX vs TMP-SMX are objectively documented from prescribing records. <strong>Moderate for Li2024a</strong>, whose “combination” arm bundles caspofungin with a corticosteroid and a lower TMP-SMX dose, blurring what the intervention actually is.</p>
+</section>
+<section id="d4-deviations-from-intended-interventions-co-interventions-timing" class="level3">
+<h3 class="anchored" data-anchor-id="d4-deviations-from-intended-interventions-co-interventions-timing">D4 — Deviations from intended interventions (co-interventions, timing)</h3>
+<p><em>Were there systematic differences in co-interventions or in treatment timing?</em></p>
+<p><strong>Critical for Li2024a</strong> — the caspofungin arm’s corticosteroid and reduced-TMP co- interventions are confounded with the antifungal, so an echinocandin effect cannot be isolated. <strong>Serious for Qi2025 and Xu2025</strong>, where caspofungin timing is mixed initial/salvage and not cleanly recorded relative to treatment start. <strong>Moderate</strong> for the remaining studies (Lu2017, Jin2019, Qi2023).</p>
+</section>
+<section id="d5-missing-data" class="level3">
+<h3 class="anchored" data-anchor-id="d5-missing-data">D5 — Missing data</h3>
+<p><em>Were outcome (and covariate) data reasonably complete?</em></p>
+<p><strong>Moderate for the retrospective cohorts Qi2025 and Xu2025 and the tiny Lu2017 series</strong>, given incomplete covariate/outcome capture and no formal handling of missingness; <strong>Low for Jin2019, Qi2023 and Li2024a</strong>, where mortality was ascertained for all included patients.</p>
+</section>
+<section id="d6-measurement-of-the-outcome" class="level3">
+<h3 class="anchored" data-anchor-id="d6-measurement-of-the-outcome">D6 — Measurement of the outcome</h3>
+<p><em>Could outcome ascertainment differ between groups?</em></p>
+<p><strong>Low for all.</strong> The outcome is all-cause mortality (in-hospital / ~30-day) — an objective endpoint unlikely to be assessed differentially by treatment arm.</p>
+</section>
+<section id="d7-selection-of-the-reported-result" class="level3">
+<h3 class="anchored" data-anchor-id="d7-selection-of-the-reported-result">D7 — Selection of the reported result</h3>
+<p><em>Is the reported effect likely selected from multiple analyses or subgroups?</em></p>
+<p><strong>Serious for Qi2025</strong>, whose mortality comparison is a subgroup extracted from a risk-factor study with no pre-registered analysis plan (the same feature that produced Yang et al.’s ventilated-subgroup extraction error). <strong>Moderate elsewhere</strong>: retrospective designs without public protocols, so selective reporting cannot be excluded.</p>
+</section>
+</section>
+<section id="overall-judgement" class="level2">
+<h2 class="anchored" data-anchor-id="overall-judgement">Overall judgement</h2>
+<p>Following ROBINS-I (the overall rating tracks the least favourable domain), the body of evidence is at <strong>serious</strong> risk of bias — driven by confounding — with <strong>Li2024a at critical</strong> risk from its bundled co-interventions. This is the risk-of-bias input to the <a href="./conclusions.html#certainty-of-evidence-grade">GRADE assessment</a> (serious → −1). It is unlikely to improve under formal review, because every included study is non-randomised.</p>
+</section>
+<section id="ratification-workflow" class="level2">
+<h2 class="anchored" data-anchor-id="ratification-workflow">Ratification workflow</h2>
+<p>To move this from <em>draft</em> to <em>final</em>:</p>
+<ol type="1">
+<li>Two reviewers independently rate all 6 studies × 7 domains using the full ROBINS-I signalling questions.</li>
+<li>Record both sets of judgements and reconcile disagreements (a third reviewer breaks ties).</li>
+<li>Replace the judgements in the table above with the reconciled consensus and remove the preliminary banner.</li>
+</ol>
+<p>Until then, every judgement here is provisional.</p>
 
 
 </section>
