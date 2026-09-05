@@ -132,8 +132,7 @@ bm_rd <- bayesmeta(y = maRD$yi, sigma = maRD$sei, labels = maRD$study,
 rd <- bm_rd$summary[, "mu"]
 
 # 95% prediction interval (OR scale) from the odds-ratio model's predictive distribution
-set.seed(3391)
-pred <- exp(quantile(bm_sens$rposterior(n = 2e4, predict = TRUE)[, "theta"], c(0.025, 0.975)))
+pred <- exp(bm_sens$qposterior(mu.p = c(0.025, 0.975), predict = TRUE))
 
 tibble(
   Quantity = c("Pooled odds ratio", "Risk difference", "Number needed to treat (point)",

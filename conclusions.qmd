@@ -12,8 +12,7 @@ bm_primary <- fit_bm(dplyr::filter(ma, tier == "primary"))
 bm_sens    <- fit_bm(ma)
 
 # 95% prediction interval (OR) and pooled clinical response, for the summary below
-set.seed(3391)
-pred <- exp(quantile(bm_sens$rposterior(n = 2e4, predict = TRUE)[, "theta"], c(0.025, 0.975)))
+pred <- exp(bm_sens$qposterior(mu.p = c(0.025, 0.975), predict = TRUE))  # analytic 95% prediction interval
 resp <- tibble::tribble(
   ~study,    ~e_comb, ~n_comb, ~e_ref, ~n_ref, ~confounded,
   "Jin2019",      24,      35,     54,     91, FALSE,
